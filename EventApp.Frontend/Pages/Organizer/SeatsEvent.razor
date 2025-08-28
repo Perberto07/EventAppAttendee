@@ -1,0 +1,170 @@
+﻿@page "/events/{EventId:guid}/seats"
+@inject ISeatClientService SeatService
+@inject IDialogService DialogService
+@inject SeatSignalRService HubClient
+@inject ISnackbar Snackbar
+
+
+<MudContainer class="accordion-body">
+    <MudText Typo="Typo.h4" GutterBottom="true">Seat Status</MudText>
+
+    <MudDivider Class="mb-4" />
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-center align-center" style="height:200px;">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+        </div>
+    }
+    else
+    {
+        <MudPaper Class="p-3 mb-4 d-flex justify-space-between align-center"
+                  Style="background-color:#424242; border-radius:8px;">
+            <MudText Typo="Typo.body1" Color="Color.Primary">Total Seats: @totalSeats</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Success">Available: <b>@availableSeats</b></MudText>
+            <MudText Typo="Typo.body1" Color="Color.Error">Booked: <b>@bookedSeats</b></MudText>
+            <MudText Typo="Typo.body1" Color="Color.Info">
+                💵 Ticket Price: ₱@ticketPrice.ToString("N2")
+            </MudText>
+            <MudText Typo="Typo.body1" Color="Color.Warning">
+                💰 Revenue: <b>₱@totalRevenue.ToString("N2")</b>
+            </MudText>
+        </MudPaper>
+
+        <MudPaper Class="p-4 mb-6 d-flex justify-center align-center"
+                  Style="background-color: #424242; color: white; border-radius: 12px;">
+            <MudText Typo="Typo.h5" Align="Align.Center">STAGE</MudText>
+        </MudPaper>
+
+        @if (!seatRows.Any())
+        {
+            <MudText>No seats found for this event.</MudText>
+        }
+        else
+        {
+            <MudPaper Class="d-block overflow-scroll justify-content-center align-items-center"
+                      Style="background-color: #424242; margin: 1px">
+                @foreach (var row in seatRows.OrderBy(r => r.Key))
+                {
+                    <div class="d-flex m-2">
+                        @foreach (var seat in row.Value)
+                        {
+                            <MudPaper style="background-color: #1e1e1e; color: azure; margin: 2px ">
+                                <MudButton Color="@(seat.IsBooked? Color.Warning: Color.Success)"
+                                           Disabled="seat.IsBooked"
+                                           Variant="Variant.Outlined"
+                                           Class="m-1"
+                                           Style="width:30px; height:30px; min-width:30px;">
+                                    @if (seat.IsBooked)
+                                    {
+                                        <MudText Color="Color.Warning">@seat.SeatNumber</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body1" Style="font-size: 11px" Color="Color.Success">@seat.SeatNumber</MudText>
+                                    }
+                                </MudButton>
+                            </MudPaper>
+                        }
+                    </div>
+                }
+
+                @if (signalRUnavailable)
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+                        Live seat updates are currently unavailable. Please refresh later.
+                    </MudAlert>
+                }
+            </MudPaper>
+        }
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid EventId { get; set; }
+    private Dictionary<int, List<EventSeatDto>> seatRows = new();
+    private bool signalRUnavailable = false;
+    private bool isLoading = true; // 👈 Added
+
+    private int totalSeats;
+    private int availableSeats;
+    private int bookedSeats;
+    private decimal ticketPrice;
+    private decimal totalRevenue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Show loader while fetching seats
+            isLoading = true;
+            StateHasChanged();
+
+            var seatSummary = await SeatService.GetSeatsByEventAsync(EventId);
+
+            if (seatSummary.Seats != null)
+            {
+                seatRows = seatSummary.Seats
+                    .GroupBy(s => s.RowNumber)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.OrderBy(s => s.ColumnNumber).ToList()
+                    );
+            }
+
+            ticketPrice = seatSummary.TicketPrice;
+
+            try
+            {
+                await HubClient.StartAsync("https://localhost:7103/", EventId);
+
+                HubClient.OnSeatUpdated += async (update) =>
+                {
+                    try
+                    {
+                        foreach (var seatsInRow in seatRows.Values)
+                        {
+                            var seatToUpdate = seatsInRow.FirstOrDefault(s => s.EventSeatId == update.EventSeatId);
+                            if (seatToUpdate != null)
+                            {
+                                seatToUpdate.IsBooked = update.IsBooked;
+                                seatToUpdate.SeatStatus = update.SeatStatus;
+                                UpdateSeatSummary();
+                                await InvokeAsync(StateHasChanged);
+                                break;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Error updating seat: {ex.Message}");
+                        Snackbar.Add("An error occurred while updating seats.");
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ SignalR not available: {ex.Message}");
+                Snackbar.Add("Live updates are currently unavailable.");
+                signalRUnavailable = true;
+            }
+
+            UpdateSeatSummary();
+        }
+        finally
+        {
+            isLoading = false; // 👈 Hide loader when done
+            StateHasChanged();
+        }
+    }
+
+    private void UpdateSeatSummary()
+    {
+        var allSeats = seatRows.SelectMany(r => r.Value).ToList();
+        totalSeats = allSeats.Count;
+        bookedSeats = allSeats.Count(s => s.IsBooked);
+        availableSeats = totalSeats - bookedSeats;
+        totalRevenue = bookedSeats * ticketPrice;
+    }
+}
+

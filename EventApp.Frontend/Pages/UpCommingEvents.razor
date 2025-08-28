@@ -1,0 +1,166 @@
+﻿@page "/upcomming-events"
+@inject IEventService EventService
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Large"
+              class="d-lg-block mt-6 justify-content-center overflow-hidden">
+    <MudText Typo="Typo.h4" GutterBottom="true" Style="color: white;">Upcoming Events</MudText>
+    <MudDivider Class="mb-4" Style="background-color: #546E7A;" />
+
+    @if (events == null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else if (!events.Any())
+    {
+        <MudText Style="color: white;">No upcoming events found.</MudText>
+    }
+    else
+    {
+        <!-- Carousel Container -->
+        <div class="carousel-container" style="position: relative; overflow: hidden; padding: 20px 0;">
+
+            <!-- Left Arrow -->
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                           Class="carousel-arrow carousel-arrow-left"
+                           Style="position: absolute; left: -10px; top: 50%; transform: translateY(-50%); z-index: 10; background-color: rgba(183, 28, 28, 0.8); color: white; width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.3);"
+                           OnClick="PreviousEvent"
+                           Disabled="@(currentIndex == 0)" />
+
+            <!-- Right Arrow -->
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                           Class="carousel-arrow carousel-arrow-right"
+                           Style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%); z-index: 10; background-color: rgba(183, 28, 28, 0.8); color: white; width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.3);"
+                           OnClick="NextEvent"
+                           Disabled="@(currentIndex >= events.Count - 1)" />
+
+            <!-- Events Slider -->
+            <div class="events-slider"
+                 style="display: flex;
+                transition: transform 0.3s ease-in-out;
+                width:@(events.Count * 100)%;
+                transform: translateX(@($"-{currentIndex * (100.0 / events.Count)}%"));
+                justify-content: center;">
+                @foreach (var ev in events)
+                {
+                    <div class="event-slide"
+                         style="flex: 0 0 @(100.0 / events.Count)%; padding: 0 20px; box-sizing: border-box; display: flex; justify-content: center;">
+                        <div style="max-width: 600px; width: 100%;">
+                            <SmallCustomCard>
+                                <MudCardMedia Image="uploads/EventSample.jpg"
+                                              Style="height: 200px; object-fit: cover;" />
+                                <MudCardContent Style="background-color: #37474F; color: white; min-height: 300px;">
+                                    <MudText Typo="Typo.h6" Class="mb-2" Style="color: #FFCDD2; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                        <MudIcon Icon="@Icons.Material.Filled.Event" Size="Size.Small" />
+                                        @ev.Title
+                                    </MudText>
+
+                                    <MudStack Spacing="2">
+                                        <MudText Typo="Typo.body2" Style="color: #B0BEC5; display: flex; align-items: center; gap: 8px;">
+                                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Style="color: #FFCDD2;" />
+                                            <strong>Start:</strong> @ev.StartDateTime.ToString("MMM dd, yyyy hh:mm tt")
+                                        </MudText>
+
+                                        <MudText Typo="Typo.body2" Style="color: #B0BEC5; display: flex; align-items: center; gap: 8px;">
+                                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Style="color: #FFCDD2;" />
+                                            <strong>End:</strong> @ev.EndDateTime.ToString("MMM dd, yyyy hh:mm tt")
+                                        </MudText>
+
+                                        <MudText Typo="Typo.body2" Style="color: #B0BEC5; display: flex; align-items: center; gap: 8px;">
+                                            <MudIcon Icon="@Icons.Material.Rounded.Money" Size="Size.Small" Style="color: #FFCDD2;" />
+                                            <strong>Price:</strong> @ev.Price
+                                        </MudText>
+
+                                        <MudText Typo="Typo.body2" Style="color: #B0BEC5; display: flex; align-items: center; gap: 8px;">
+                                            <MudIcon Icon="@Icons.Material.Rounded.LocationOn" Size="Size.Small" Style="color: #FFCDD2;" />
+                                            <strong>Location:</strong> @ev.Location
+                                        </MudText>
+
+                                        <MudText Typo="Typo.body2" Style="color: #B0BEC5; margin-top: 12px;">
+                                            <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                                <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Small" Style="color: #FFCDD2; margin-top: 2px;" />
+                                                <div>
+                                                    <strong>Description:</strong><br />
+                                                    @(ev.Description.Length > 100 ? ev.Description.Substring(0, 100) + "..." : ev.Description)
+                                                </div>
+                                            </div>
+                                        </MudText>
+                                    </MudStack>
+
+                                    <!-- View Details Button -->
+                                    <MudButton Variant="Variant.Filled"
+                                               Color="Color.Error"
+                                               Style="background-color: #B71C1C; color: white; margin-top: 16px; width: 100%;"
+                                               StartIcon="@Icons.Material.Filled.Create"
+                                               onclick="GotoCreateEvent">
+                                        Book An Event Now
+                                    </MudButton>
+                                </MudCardContent>
+                            </SmallCustomCard>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Dots Indicator -->
+            <div style="display: flex; justify-content: center; margin-top: 20px; gap: 8px;">
+                @for (int i = 0; i <= events.Count - eventsPerView; i++)
+                {
+                    int dotIndex = i; // Capture for closure
+                                      <MudButton Variant="Variant.Filled"
+                                                 Style="@GetDotStyle(dotIndex)"
+                                                 Size="Size.Small"
+                                                 Class="pa-0"
+                                                 OnClick="@(() => GoToSlide(dotIndex))">
+                                      </MudButton>
+                }
+            </div>
+        </div>
+    }
+</MudContainer>
+
+@code {
+    private List<EventDto>? events;
+    private int currentIndex = 0;
+    private int eventsPerView = 1; // Show 1 event at a time
+
+    protected override async Task OnInitializedAsync()
+    {
+        events = await EventService.GetUpcomingEventsAsync();
+    }
+
+    private void NextEvent()
+    {
+        if (events != null && currentIndex < events.Count - 1)
+        {
+            currentIndex++;
+        }
+    }
+
+    private void PreviousEvent()
+    {
+        if (currentIndex > 0)
+        {
+            currentIndex--;
+        }
+    }
+
+    private void GoToSlide(int index)
+    {
+        currentIndex = index;
+    }
+
+    private string GetDotStyle(int index)
+    {
+        var baseStyle = "width: 12px; height: 12px; border-radius: 50%; min-width: 12px; min-height: 12px; margin: 0;";
+        var activeColor = "background-color: #B71C1C;";
+        var inactiveColor = "background-color: rgba(176, 190, 197, 0.5);";
+
+        return baseStyle + (currentIndex == index ? activeColor : inactiveColor);
+    }
+
+    private void GotoCreateEvent()
+    {
+        NavigationManager.NavigateTo("create-event");
+    }
+}

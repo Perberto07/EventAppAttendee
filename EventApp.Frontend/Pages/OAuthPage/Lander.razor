@@ -1,0 +1,109 @@
+﻿@page "/lander"
+@inject NavigationManager NavManager
+@inject HttpClient Http
+@inject IDialogService DialogService
+@using EventApp.Shared.DTOs.AttendeeAuth
+@using MudBlazor
+@using System.Net.Http.Json
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudCard Style="margin: 5px; background-color: #0014; color: white; margin: 5px"
+             Elevation="8">
+        <MudCardContent Class="m-lg-2"
+                        Style="color: white; margin-top: 30px">
+            <h3>Reset Password</h3>
+
+            @if (string.IsNullOrEmpty(token))
+            {
+                <p>Invalid link.</p>
+            }
+            else
+            {
+                <MudTextField @bind-Value="newPassword"
+                              Label="New Password"
+                              InputType="InputType.Password"
+                              Variant="Variant.Outlined"
+                              Class="mb-2"
+                              Style="color: white"
+                              AdornmentColor="Color.Success"/>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ResetPassword" Disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <span>Resetting...</span>
+                    }
+                    else
+                    {
+                        <span>Reset Password</span>
+                    }
+                </MudButton>
+            }
+
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <MudText Typo="Typo.body2" Color="@messageColor" Class="mt-2">@message</MudText>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private string? token;
+    private string newPassword = "";
+    private string message = "";
+    private Color messageColor = Color.Default;
+    private bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query)
+            .TryGetValue("token", out var t))
+        {
+            token = t;
+        }
+    }
+
+    private async Task ResetPassword()
+    {
+        if (string.IsNullOrEmpty(token)) return;
+
+        isLoading = true;
+        message = "";
+        messageColor = Color.Default;
+
+        try
+        {
+            var dto = new ResetPasswordDto { Token = token, NewPassword = newPassword };
+            var response = await Http.PostAsJsonAsync("api/auth/reset-password", dto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                message = "Password reset successful! Please log in with your new password.";
+                messageColor = Color.Success;
+
+                // Optional: small delay to show the message
+                await Task.Delay(1000);
+
+                // Open the LoginDialog automatically
+                var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+                await DialogService.ShowAsync<LoginDialog>("Login", options);
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                message = $"Error: {error}";
+                messageColor = Color.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Unexpected error: {ex.Message}";
+            messageColor = Color.Error;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

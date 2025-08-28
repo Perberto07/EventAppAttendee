@@ -1,0 +1,40 @@
+﻿.carousel-arrow:hover {
+    background-color: rgba(183, 28, 28, 1) !important;
+    transform: translateY(-50%) scale(1.1);
+    transition: all 0.2s ease;
+}
+
+.carousel-arrow:disabled {
+    background-color: rgba(120, 120, 120, 0.5) !important;
+    cursor: not-allowed;
+}
+
+.event-slide {
+    transition: transform 0.2s ease;
+}
+
+    .event-slide:hover {
+        transform: translateY(-5px);
+    }
+
+.mud-card {
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: box-shadow 0.3s ease;
+}
+
+    .mud-card:hover {
+        box-shadow: 0 8px 24px rgba(183, 28, 28, 0.2);
+    }
+
+@@media (max-width: 960px) {
+    .carousel-arrow-left {
+        left: 5px !important;
+    }
+
+    .carousel-arrow-right {
+        right: 5px !important;
+    }
+}

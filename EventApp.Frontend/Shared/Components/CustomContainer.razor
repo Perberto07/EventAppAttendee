@@ -1,0 +1,16 @@
+﻿<MudContainer MaxWidth="@MaxWidth" 
+              Class="@($"mt-6 {Class}")" 
+              Style="color: white">
+    <MudPaper Elevation="@Elevation"
+              Class="p-5"
+              style="background-color: darkslateblue; padding: 20px; color: black">
+        @ChildContent
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public MaxWidth MaxWidth { get; set; } = MaxWidth.Medium;
+    [Parameter] public int Elevation { get; set; } = 4;
+    [Parameter] public string Class { get; set; } = string.Empty;
+}

@@ -1,0 +1,124 @@
+﻿@using EventApp.Shared.DTOs.Auth.OTPRegister
+@inject IDialogService DialogService
+@inject NavigationManager Nav
+@inject IClientService AuthService
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <TitleContent>
+        Register
+    </TitleContent>
+
+    <DialogContent>
+        <EditForm Model="@registerDto">
+            @if (!otpRequested)
+            {
+                <MudTextField @bind-Value="registerDto.Email" Label="Email" Required="true" />
+                <MudButton Color="Color.Primary" OnClick="RequestOtp" Disabled="@isSubmitting">Request OTP</MudButton>
+            }
+            else
+            {
+                <MudTextField @bind-Value="registerDto.Email" Label="Email" Disabled="true" />
+                <MudTextField @bind-Value="registerDto.Otp" Label="OTP" Required="true" />
+                <MudTextField @bind-Value="registerDto.Username" Label="Username" Required="true" />
+                <MudTextField @bind-Value="registerDto.Password" Label="Password" InputType="InputType.Password" Required="true" />
+
+                <MudButton Color="Color.Primary" OnClick="HandleRegister" Disabled="@isSubmitting">Register</MudButton>
+            }
+        </EditForm>
+
+        @if (!string.IsNullOrWhiteSpace(Error))
+        {
+            <MudText Color="Color.Error">@Error</MudText>
+        }
+
+        <MudText Class="mt-3" Typo="Typo.body2" Align="Align.Center">
+            Already have an account?
+            <MudLink OnClick="@OpenLoginDialog" Color="Color.Primary" Style="cursor:pointer;">
+                Log in
+            </MudLink>
+        </MudText>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="@isSubmitting">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private CompleteRegistrationDto registerDto = new();
+    private string Error = string.Empty;
+    private bool isSubmitting = false;
+    private bool otpRequested = false;
+
+    private async Task RequestOtp()
+    {
+        isSubmitting = true;
+        Error = string.Empty;
+
+        try
+        {
+            var result = await AuthService.StartRegistrationAsync(registerDto.Email);
+
+            if (!string.IsNullOrWhiteSpace(result) && result.Contains("OTP", StringComparison.OrdinalIgnoreCase))
+            {
+                otpRequested = true;
+                Snackbar.Add(result, Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(result ?? "Failed to send OTP.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+
+        isSubmitting = false;
+    }
+
+    private async Task HandleRegister()
+    {
+       isSubmitting = true;
+    Error = string.Empty;
+
+    try
+    {
+        var token = await AuthService.CompleteRegistrationAsync(registerDto);
+
+        if (token != null)
+        {
+            Snackbar.Add("Registration successful!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+            Nav.NavigateTo("/create-event", forceLoad: true);
+        }
+        else
+        {
+            Snackbar.Add("Invalid OTP or registration details.", Severity.Error);
+        }
+    }
+    catch (Exception ex)
+    {
+        Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+    }
+
+    isSubmitting = false;
+    }
+
+    private async Task OpenLoginDialog()
+    {
+        MudDialog.Cancel();
+        await DialogService.ShowAsync<LoginDialog>("Login", 
+            new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

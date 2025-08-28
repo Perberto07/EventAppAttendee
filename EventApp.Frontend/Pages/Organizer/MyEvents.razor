@@ -1,0 +1,152 @@
+﻿@page "/my-events"
+@inject IEventService EventService
+@inject NavigationManager Nav
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudText Typo="Typo.h4" GutterBottom="true" Class="mb-3" Style="color: white; font-weight: 600;">My Events</MudText>
+    <MudDivider Class="mb-6" Style="background-color: #546E7A;" />
+
+    @if (events == null)
+    {
+        <div style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
+            <MudProgressCircular Indeterminate="true" Color="Color.Error" Size="Size.Large" />
+        </div>
+    }
+    else if (!events.Any())
+    {
+        <div style="text-align: center; padding: 60px 20px;">
+            <MudIcon Icon="@Icons.Material.Filled.EventNote"
+                     Style="font-size: 72px; color: #546E7A; margin-bottom: 16px;" />
+            <MudText Typo="Typo.h6" Style="color: #B0BEC5; margin-bottom: 8px;">No events found</MudText>
+            <MudText Typo="Typo.body2" Style="color: #78909C;">You haven't created any events yet.</MudText>
+        </div>
+    }
+    else
+    {
+        <MudGrid Spacing="4">
+            @foreach (var ai in events)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="8"
+                             Class="event-card h-100"
+                             Style="background-color: #37474F; border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
+
+                        <!-- Event Header -->
+                        <div style="background: linear-gradient(135deg, #B71C1C 0%, #D32F2F 100%); padding: 20px; position: relative;">
+                            <MudIcon Icon="@Icons.Material.Filled.Event"
+                                     Style="color: white; position: absolute; top: 16px; right: 16px; opacity: 0.8;"
+                                     Size="Size.Medium" />
+                            <MudText Typo="Typo.h6"
+                                     Style="color: white; font-weight: 600; line-height: 1.2; margin-bottom: 8px; padding-right: 40px;">
+                                @ai.Title
+                            </MudText>
+                        </div>
+
+                        <!-- Event Details -->
+                        <MudCardContent Style="padding: 20px;">
+                            <MudStack Spacing="3">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Schedule"
+                                             Style="color: #FFCDD2;"
+                                             Size="Size.Small" />
+                                    <div>
+                                        <MudText Typo="Typo.caption" Style="color: #B0BEC5; line-height: 1;">Start</MudText>
+                                        <MudText Typo="Typo.body2" Style="color: white; font-weight: 500;">
+                                            @ai.StartDateTime.ToString("MMM dd, yyyy")
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Style="color: #78909C;">
+                                            @ai.StartDateTime.ToString("hh:mm tt")
+                                        </MudText>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.ScheduleSend"
+                                             Style="color: #FFCDD2;"
+                                             Size="Size.Small" />
+                                    <div>
+                                        <MudText Typo="Typo.caption" Style="color: #B0BEC5; line-height: 1;">End</MudText>
+                                        <MudText Typo="Typo.body2" Style="color: white; font-weight: 500;">
+                                            @ai.EndDateTime.ToString("MMM dd, yyyy")
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Style="color: #78909C;">
+                                            @ai.EndDateTime.ToString("hh:mm tt")
+                                        </MudText>
+                                    </div>
+                                </div>
+                            </MudStack>
+                            <MudStack Row="true" Style="display:flex; justify-content: space-around; margin-top: 10px"  AlignItems="AlignItems.Baseline">
+                                <!-- Location -->
+                                <MudChip T="String" Icon="@Icons.Material.Rounded.LocationOn"
+                                         Style="background-color: #455A64; color: white; font-weight: 500; padding: 0 12px; height: 32px;">
+                                    @ai.Location
+                                </MudChip>
+
+                                <!-- Price -->
+                                <MudChip T="string" Icon="@Icons.Material.Rounded.Money"
+                                         Style="background-color: #FFB300; color: #263238; font-weight: 600; padding: 0 12px; height: 32px;">
+                                    @ai.Price
+                                </MudChip>
+                            </MudStack>
+                        </MudCardContent>
+
+                        <!-- Action Buttons -->
+                        <MudCardActions Style="padding: 0 20px 20px 20px;">
+                            <MudStack Spacing="2" Style="width: 100%;">
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Info"
+                                           FullWidth="true"
+                                           Style="background-color: #1976D2; color: white; text-transform: none; font-weight: 600; border-radius: 8px;"
+                                           OnClick="@(() => Nav.NavigateTo($"/events/{ai.Id}/seats"))"
+                                           StartIcon="@Icons.Material.Filled.ViewModule">
+                                    View Seats
+                                </MudButton>
+
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Success"
+                                           FullWidth="true"
+                                           Style="border-color: #4CAF50; color: #4CAF50; text-transform: none; font-weight: 600; border-radius: 8px;"
+                                           OnClick="@(() => Nav.NavigateTo($"/events/{ai.Id}/manage"))"
+                                           StartIcon="@Icons.Material.Filled.Edit">
+                                    Manage Event
+                                </MudButton>
+                            </MudStack>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+<style>
+    .event-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(183, 28, 28, 0.15) !important;
+    }
+
+    .mud-button-filled:hover {
+        background-color: #1565C0 !important;
+        transform: translateY(-1px);
+    }
+
+    .mud-button-outlined:hover {
+        background-color: rgba(76, 175, 80, 0.1) !important;
+        border-color: #66BB6A !important;
+        color: #66BB6A !important;
+        transform: translateY(-1px);
+    }
+
+    .mud-chip {
+        font-weight: 500 !important;
+    }
+</style>
+
+@code {
+    private List<EventDto>? events;
+    protected override async Task OnInitializedAsync()
+    {
+        events = await EventService.GetAllEventsAsync();
+    }
+}

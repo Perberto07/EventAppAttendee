@@ -1,0 +1,88 @@
+﻿@inject IDialogService DialogService
+
+<MudDialog>
+    <TitleContent>
+        Login
+    </TitleContent>
+
+    <DialogContent>
+        <EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
+            <MudTextField @bind-Value="loginDto.Username" Label="Username" Required="true" />
+            <MudTextField @bind-Value="loginDto.Password" Label="Password" InputType="InputType.Password" Required="true" />
+
+            @if (!string.IsNullOrWhiteSpace(Error))
+            {
+                <MudText Color="Color.Error">@Error</MudText>
+            }
+        </EditForm>
+        <MudText Class="mt-3" Typo="Typo.body2" Align="Align.Center">
+            Don't have an account?
+            <MudLink OnClick="@OpenRegisterDialog" Color="Color.Primary" Style="cursor:pointer;">
+                Register
+            </MudLink>
+        </MudText>
+        <MudText Class="mt-3"
+                 Typo="Typo.body2"
+                 Align="Align.Center">
+            <MudLink OnClick="@GotoForgotPassword" Color="Color.Primary" Style="cursor:pointer;">
+                Forgot Password
+            </MudLink>
+        </MudText>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="HandleLogin" Disabled="@isSubmitting">Login</MudButton>
+        <MudButton OnClick="Cancel" Disabled="@isSubmitting">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Inject]
+    private IClientService AuthService { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Nav { get; set; } = default!;
+
+    private LoginRequestDto loginDto = new();
+    private string Error = string.Empty;
+    private bool isSubmitting = false;
+
+    private async Task HandleLogin()
+    {
+        isSubmitting = true;
+        Error = string.Empty;
+
+        var token = await AuthService.LoginAsync(loginDto);
+        if (token != null)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+            Nav.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            Error = "Invalid credentials.";
+        }
+
+        isSubmitting = false;
+    }
+
+
+    private async Task OpenRegisterDialog()
+    {
+        MudDialog.Cancel();
+        await DialogService.ShowAsync<RegistrationDialog>("Register", new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+    }
+
+    private void GotoForgotPassword()
+    {
+        Nav.NavigateTo("/forgot-password", forceLoad: true);
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

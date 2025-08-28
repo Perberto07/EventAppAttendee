@@ -1,0 +1,14 @@
+﻿@* Enhanced Custom Card Component *@
+<MudCard Elevation="4"
+         style="background-color: white; padding: 20px; color: white"
+         Class="w-50 m-2"
+         @attributes="AdditionalAttributes">
+    @ChildContent
+</MudCard>
+
+
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

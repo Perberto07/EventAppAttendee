@@ -1,0 +1,45 @@
+﻿@using EventApp.Shared.DTOs.Seat
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@Model" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <MudTextField @bind-Value="Model.Name"
+                          Label="Layout Name"
+                          Required="true" />
+
+            <MudNumericField @bind-Value="Model.Rows"
+                             Label="Rows"
+                             Required="true"
+                             Min="1" />
+
+            <MudNumericField @bind-Value="Model.Columns"
+                             Label="Columns"
+                             Required="true"
+                             Min="1" />
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Save">Save</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public CreateSeatLayoutDto Model { get; set; } = new();
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private void Save()
+    {
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

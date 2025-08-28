@@ -1,0 +1,246 @@
+﻿@* Event Organizer Landing Component for MudBlazor *@
+@page "/"
+@inject NavigationManager nav
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
+    <!-- Hero Section -->
+    <MudPaper Class="pa-0 rounded-0" Style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%); min-height: 100vh; position: relative; overflow: hidden;">
+
+        <!-- Background Pattern -->
+        <div style="position: absolute; inset: 0; opacity: 0.03; background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 20px 20px;"></div>
+
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-16">
+
+
+
+            <!-- Main Hero Content -->
+            <MudGrid Justify="Justify.Center" Class="text-center mb-12">
+                <MudItem xs="12" md="10" lg="8">
+                    <MudText Typo="Typo.h1" Class="fw-bold mb-6"
+                             Style="font-size: clamp(3rem, 8vw, 6rem); line-height: 1.1; background: linear-gradient(135deg, #ffffff 0%, #fecaca 50%, #f87171 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        Create Epic Events,<br />
+                        <span style="color: #ef4444;">Own the Experience</span>
+                    </MudText>
+
+                    <MudText Typo="Typo.h5" Class="mb-8" Style="color: #d1d5db; font-weight: 300; line-height: 1.6; max-width: 800px; margin: 0 auto;">
+                        Transform your vision into unforgettable experiences. From intimate workshops to massive concerts,
+                        design the perfect seating layout and manage every detail with our cutting-edge platform.
+                    </MudText>
+
+                    <MudStack Direction="Row" Justify="Justify.Center" Spacing="4" Class="flex-wrap">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   Size="Size.Large"
+                                   Class="px-8 py-4 rounded-xl"
+                                   Style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3); transform: translateY(0); transition: all 0.3s ease;"
+                                   OnMouseOver="@(() => { })"
+                                   OnClick="NavigateToCreateEvent">
+                            <MudText Class="fw-bold">Start Creating Events</MudText>
+                            <MudIcon Icon="Icons.Material.Filled.ArrowForward" Class="ml-2" />
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Surface"
+                                   Size="Size.Large"
+                                   Class="px-8 py-4 rounded-xl"
+                                   Style="border-color: #6b7280; color: white; transition: all 0.3s ease;"
+                                   onclick="GotoUpcommingEvent">
+                            See Upcomming Events
+                        </MudButton>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </MudPaper>
+
+    <!-- Seat Layouts Showcase -->
+    <MudPaper Class="pa-16 rounded-0" Style="background: #0f172a;">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge">
+
+            <MudStack AlignItems="AlignItems.Center" Class="mb-12">
+                <MudText Typo="Typo.h2" Class="fw-bold text-center mb-4" Style="color: white;">
+                    Layout Possibilities
+                </MudText>
+                <MudText Typo="Typo.h6" Class="text-center" Style="color: #9ca3af; max-width: 700px;">
+                    Choose any seating arrangement you can imagine. Customize seat counts, layouts.
+                </MudText>
+            </MudStack>
+
+
+            <MudGrid>
+                <!-- Theater Seating -->
+                <MudItem xs="12" md="8" lg="6" Class="mx-auto">
+                    <MudPaper Class="pa-6 h-100 justify-content-center"
+                              Style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+             border: 1px solid #475569; transition: all 0.3s ease;">
+                        <MudStack Spacing="4" AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.h4" Class="fw-bold text-center" Style="color: white;">🎭 Theater Seating</MudText>
+                            <MudText Typo="Typo.body2" Class="text-center" Style="color: #cbd5e1;">
+                                Classic theater-style seating with 10 rows and 10 seats per row
+                            </MudText>
+
+                            <!-- Stage -->
+                            <MudPaper Class="pa-2 mb-4"
+                                      Style="background: #ef4444; color: white; text-align: center;
+                     font-weight: bold; border-radius: 6px; width: 100%; max-width: 400px;">
+                                STAGE
+                            </MudPaper>
+
+                            <!-- Seat Layout -->
+                            <MudPaper Class="pa-4 align-content-center"
+                                      Style="background: #0f172a; width: 100%; border-radius: 8px;">
+                                <MudStack Spacing="2" Justify="Justify.Center">
+                                    @for (int row = 0; row < 10; row++)
+                                    {
+                                        <MudStack row="true" Spacing="1" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                                            @for (int seat = 0; seat < 10; seat++)
+                                            {
+                                                <div style="width: 22px; height: 22px;
+                                                    background: @(Random.Shared.Next(0, 10) > 2 ? "#22c55e" : "#6b7280");
+                                                    border-radius: 4px;
+                                                    border: 1px solid #1e293b;">
+                                                </div>
+                                            }
+                                        </MudStack>
+                                    }
+                                </MudStack>
+                            </MudPaper>
+
+                            <!-- Legend -->
+                            <MudStack Row="true" Spacing="4" Justify="Justify.Center" Class="mt-4">
+                                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                    <div style="width: 16px; height: 16px; background: #22c55e; border-radius: 4px;"></div>
+                                    <MudText Typo="Typo.caption" Style="color: #cbd5e1;">Available</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                    <div style="width: 16px; height: 16px; background: #6b7280; border-radius: 4px;"></div>
+                                    <MudText Typo="Typo.caption" Style="color: #cbd5e1;">Occupied</MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+
+
+            <!-- Features Section -->
+            <MudPaper Class="pa-16 rounded-0" Style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);">
+                <MudContainer MaxWidth="MaxWidth.ExtraLarge">
+
+                    <MudStack AlignItems="AlignItems.Center" Class="mb-12">
+                        <MudText Typo="Typo.h2" Class="fw-bold text-center mb-4" Style="color: white;">
+                            Everything You Need to Succeed
+                        </MudText>
+                        <MudText Typo="Typo.h6" Class="text-center" Style="color: #c7d2fe; max-width: 600px;">
+                            Powerful tools designed to make event management effortless and profitable.
+                        </MudText>
+                    </MudStack>
+
+                    <MudGrid Spacing="8">
+                        <MudItem xs="12" lg="6">
+                            <MudStack Spacing="6">
+
+                                <MudPaper Class="pa-6" Style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);">
+                                    <MudStack row="true" Spacing="4" AlignItems="AlignItems.Start">
+                                        <MudIcon Icon="Icons.Material.Filled.Flash" Size="Size.Large" Style="color: #fbbf24;" />
+                                        <MudStack>
+                                            <MudText Typo="Typo.h6" Class="fw-bold" Style="color: white;">Instant Setup</MudText>
+                                            <MudText Typo="Typo.body1" Style="color: #c7d2fe;">Create events in minutes with our Ready to Use seat Layout</MudText>
+                                        </MudStack>
+                                    </MudStack>
+                                </MudPaper>
+
+                                <MudPaper Class="pa-6" Style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);">
+                                    <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Start">
+                                        <MudIcon Icon="Icons.Material.Filled.Analytics" Size="Size.Large" Style="color: #10b981;" />
+                                        <MudStack>
+                                            <MudText Typo="Typo.h6" Class="fw-bold" Style="color: white;">Smart Analytics</MudText>
+                                            <MudText Typo="Typo.body1" Style="color: #c7d2fe;">Track Available seat, revenue, and engagement with real-time insights</MudText>
+                                        </MudStack>
+                                    </MudStack>
+                                </MudPaper>
+
+                                <MudPaper Class="pa-6" Style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);">
+                                    <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Start">
+                                        <MudIcon Icon="Icons.Material.Filled.Schedule" Size="Size.Large" Style="color: #8b5cf6;" />
+                                        <MudStack>
+                                            <MudText Typo="Typo.h6" Class="fw-bold" Style="color: white;">Flexible Scheduling</MudText>
+                                            <MudText Typo="Typo.body1" Style="color: #c7d2fe;">Manage recurring events, multiple sessions, and complex schedules</MudText>
+                                        </MudStack>
+                                    </MudStack>
+                                </MudPaper>
+                            </MudStack>
+                        </MudItem>
+
+                        <MudItem xs="12" lg="6">
+                            <MudPaper Class="pa-8 text-center" Style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 20px; position: relative; overflow: hidden;">
+                                <div style="position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);"></div>
+
+                                <MudStack AlignItems="AlignItems.Center" Spacing="4" Style="position: relative; z-index: 1;">
+                                    <MudIcon Icon="Icons.Material.Filled.Rocket" Size="Size.Large" Style="color: white; font-size: 4rem;" />
+                                    <MudText Typo="Typo.h4" Class="fw-bold" Style="color: white;">Ready to Launch?</MudText>
+                                    <MudText Typo="Typo.body1" Style="color: rgba(255, 255, 255, 0.9);">
+                                        Join thousands of successful event organizers who chose our platform
+                                    </MudText>
+
+                                    <MudButton Variant="Variant.Filled"
+                                               Color="Color.Surface"
+                                               Size="Size.Large"
+                                               Class="px-8 py-4 mt-4"
+                                               Style="background: white; color: #dc2626; font-weight: bold;"
+                                               OnClick="NavigateToCreateEvent">
+                                        Create Your First Event
+                                        <MudIcon Icon="Icons.Material.Filled.ArrowForward" Class="ml-2" />
+                                    </MudButton>
+                                </MudStack>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                </MudContainer>
+            </MudPaper>
+        </MudContainer>
+    </MudPaper>
+
+    <!-- Final CTA -->
+    <MudPaper Class="pa-16 rounded-0 text-center" Style="background: #000000; border-top: 2px solid #ef4444;">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudStack AlignItems="AlignItems.Center" Spacing="6">
+                <MudText Typo="Typo.h3" Class="fw-bold" Style="color: white;">
+                    Don't Just Attend Events. Create Them.
+                </MudText>
+
+                <MudText Typo="Typo.h6" Style="color: #9ca3af; max-width: 600px;">
+                    Whether you're planning your first workshop or managing a world-class festival,
+                    we provide the tools to make it extraordinary.
+                </MudText>
+
+                <MudStack Direction="Row" Spacing="4" Class="flex-wrap" Justify="Justify.Center">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Error"
+                               Size="Size.Large"
+                               Class="px-10 py-4 rounded-xl"
+                               Style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); font-weight: bold; font-size: 1.1rem;"
+                               OnClick="NavigateToCreateEvent">
+                        🚀 Start Creating Now
+                    </MudButton>
+                </MudStack>
+
+                <MudStack Direction="Row" Spacing="4" AlignItems="AlignItems.Center" Class="mt-8">
+                    <MudIcon Icon="Icons.Material.Filled.CheckCircle" Style="color: #22c55e;" />
+                    <MudText Typo="Typo.body2" Style="color: #9ca3af;">Free trial • No credit card required • Setup in 5 minutes</MudText>
+                </MudStack>
+            </MudStack>
+        </MudContainer>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private void NavigateToCreateEvent()
+    {
+        nav.NavigateTo("create-event");
+    }
+    private void GotoUpcommingEvent()
+    {
+        nav.NavigateTo("upcomming-events");
+    }
+}
