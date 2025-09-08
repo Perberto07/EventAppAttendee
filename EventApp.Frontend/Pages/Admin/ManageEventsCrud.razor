@@ -1,5 +1,4 @@
 ﻿@page "/admin/manage-events"
-@using EventApp.Shared.Models
 @inject IEventService EventService
 @inject NavigationManager Nav
 @attribute [Authorize(Roles = "Admin")]
@@ -29,7 +28,7 @@
             {
                 <MudItem xs="12" sm="6" md="4" lg="3">
                     <MudCard Elevation="8" Class="event-card h-100"
-                             Style="background-color: #37474F; border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
+                             Style="background-color: #0B192C; border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
 
                         <!-- Event Header -->
                         <div style="background: linear-gradient(135deg, #B71C1C 0%, #D32F2F 100%); padding: 20px; position: relative;">

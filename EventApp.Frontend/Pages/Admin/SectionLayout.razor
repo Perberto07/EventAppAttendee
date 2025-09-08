@@ -1,0 +1,65 @@
+﻿@page "/layout-section/{SeatLayoutId:guid}"
+@inject ILayoutClientServ SeatLayoutService
+@inject NavigationManager Navigation
+
+<h3 style="color:white;">Section Layout</h3>
+
+@if (loading)
+{
+    <MudText Color="Color.Info">Loading sections...</MudText>
+}
+else if (seatLayout == null)
+{
+    <MudText Color="Color.Error">Seat layout not found.</MudText>
+}
+else
+{
+    <MudText Typo="Typo.subtitle1" Class="mb-2">Layout: @seatLayout.Name</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-2">Price: @seatLayout.Price</MudText>
+
+    <MudDivider Class="my-2" />
+
+    @if (seatLayout.Sections == null || !seatLayout.Sections.Any())
+    {
+        <MudText>No sections found for this layout.</MudText>
+    }
+    else
+    {
+        <MudPaper Elevation="0" class="w-100 d-flex flex-column m-3 bg-transparent">
+
+            @foreach (var section in seatLayout.Sections)
+            {
+                var sec = section;
+                <MudPaper Class="d-flex flex-column mb-2 p-3 justify-content-center align-items-center"
+                          Style="margin-right:10px; background-color:#1B2C3C; color:white; min-width:150px;">
+                    <MudText Typo="Typo.subtitle1">@sec.Name</MudText>
+                    <MudText Typo="Typo.body2">@sec.Rows Row * @sec.Columns Col</MudText>
+                    <MudText Typo="Typo.body2">Total Seats: @sec.TotalSeats</MudText>
+                </MudPaper>
+            }
+        </MudPaper>
+        
+    }
+}
+
+@code {
+    [Parameter]
+    public Guid SeatLayoutId { get; set; }
+
+    private SeatLayoutDto? seatLayout;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSeatLayout();
+    }
+
+    private async Task LoadSeatLayout()
+    {
+        loading = true;
+
+        seatLayout = await SeatLayoutService.GetSeatLayoutWithSectionsAsync(SeatLayoutId);
+
+        loading = false;
+    }
+}

@@ -1,0 +1,51 @@
+﻿@* @inject IClientLocationServ LocationServ
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Bind Seat Layout</MudText>
+
+        <MudSelect T="Guid" Label="Select Seat Layout" @bind-Value="_selectedLayout">
+            <MudSelectItem Value="@(default(Guid))">-- Select a layout --</MudSelectItem>
+            @foreach (var seatLayout in AvailableLayouts)
+            {
+                <MudSelectItem Value="@seatLayout.Id">@seatLayout.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Bind" Disabled="@(_selectedLayout == default)">Bind</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public LocationDto Location { get; set; } = default!;
+    [Parameter] public List<SeatLayoutDto> AvailableLayouts { get; set; } = new();
+
+    private Guid _selectedLayout = default;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Bind()
+    {
+        if (_selectedLayout == default)
+        {
+            Snackbar.Add("Please select a layout", Severity.Warning);
+            return;
+        }
+
+        // Create a list with the single selected layout
+        var success = await LocationServ.BindSeatLayoutsAsync(Location.Id, new List<Guid> { _selectedLayout });
+        if (success)
+        {
+            Snackbar.Add("Seat layout bound successfully", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add("Failed to bind seat layout", Severity.Error);
+        }
+    }
+} *@

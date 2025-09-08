@@ -1,0 +1,134 @@
+﻿@page "/create-event"
+
+@inject IClientEventServ EventService
+@inject IClientLocationService LocationService
+@inject ILayoutClientServ LayoutService
+@inject NavigationManager Navigation
+@inject JwtAuthenticationStateProvider AuthProvider
+
+<h3 style="color:white;">Create New Event</h3>
+
+<MudPaper Class="p-4 mt-2" Style="background-color:#0B192C; color:white;">
+    <MudTextField @bind-Value="newEvent.Title" Label="Event Title" Required="true" Style="color:white;" />
+    <MudTextField @bind-Value="newEvent.Description" Label="Description" Lines="3" Style="color:white;" />
+
+    <MudDatePicker @bind-Date="startDate" Label="Start Date" Style="color:white;" />
+    <MudTimePicker @bind-Time="startTime" Label="Start Time" Style="color:white;" />
+
+    <MudDatePicker @bind-Date="endDate" Label="End Date" Style="color:white;" />
+    <MudTimePicker @bind-Time="endTime" Label="End Time" Style="color:white;" />
+
+
+
+   <MudGrid>
+    <!-- Location Select -->
+    <MudItem xs="9">
+        <MudSelect T="Guid" Label="Location" @bind-Value="newEvent.LocationId">
+            @foreach (var loc in locations)
+            {
+                <MudSelectItem Value="@loc.Id">@loc.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+
+    <MudItem xs="3">
+        <MudButton OnClick="@LoadSeatLayouts">
+            Select
+        </MudButton>
+    </MudItem>
+
+    <!-- Seat Layout Select -->
+    <MudItem xs="9" md="9">
+        <MudSelect T="Guid" Label="Seat Layout" @bind-Value="newEvent.SeatLayoutId"
+                    Placeholder="Select Select Layout">
+            @foreach (var layout in seatLayouts)
+            {
+                var lyt = layout;
+                <MudSelectItem Value="@lyt.Id">@lyt.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+
+    <MudItem xs="12" md="3">
+        <MudButton OnClick="SelectSeatLayout">
+            Select
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
+
+   
+
+
+    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreateEvent" Class="mt-3">
+        Create Event
+    </MudButton>
+</MudPaper>
+
+@code {
+    private NCreateEventDto newEvent = new NCreateEventDto();
+
+    private DateTime? startDate = DateTime.Now;
+    private TimeSpan? startTime = DateTime.Now.TimeOfDay;
+    private DateTime? endDate = DateTime.Now;
+    private TimeSpan? endTime = DateTime.Now.TimeOfDay;
+
+    private List<LocationDto> locations = new();
+    private List<SeatLayoutDto> seatLayouts = new();
+    private Guid? organizerId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        locations = await LocationService.GetAllLocationsAsync();
+        organizerId = await AuthProvider.GetUserIdAsync(); // implement your organizer fetching logic
+        newEvent.OrganizerId = organizerId ?? Guid.Empty;
+        Console.WriteLine($"Organizer ID: {newEvent.OrganizerId}");
+    }
+
+
+    private void SelectSeatLayout()
+    {
+        // Here you could perform additional actions on seat layout selection
+        Console.WriteLine($"Selected Layout Id: {newEvent.SeatLayoutId}");
+    }
+
+
+
+    private async Task CreateEvent()
+    {
+        try
+        {
+            // Combine date and time for Start/End
+            newEvent.StartDateTime = startDate.Value.Date + startTime.Value;
+            newEvent.EndDateTime = endDate.Value.Date + endTime.Value;
+
+            var created = await EventService.CreateEventAsync(newEvent);
+
+            if (created != null)
+            {
+                Navigation.NavigateTo($"/event-details/{created.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating event: {ex.Message}");
+        }
+    }
+
+    private async Task LoadSeatLayouts()
+    {
+        if (newEvent.LocationId != Guid.Empty)
+        {
+            // Call your API to get location with seat layouts
+            var location = await LocationService.GetLocationWithSeatLayoutsAsync(newEvent.LocationId);
+            if (location != null)
+            {
+                // Update seatLayouts dropdown
+                seatLayouts = location.SeatLayouts ?? new List<SeatLayoutDto>();
+
+                // Optionally reset the selected seat layout
+                newEvent.SeatLayoutId = seatLayouts.FirstOrDefault()?.Id ?? Guid.Empty;
+            }
+        }
+    }
+}

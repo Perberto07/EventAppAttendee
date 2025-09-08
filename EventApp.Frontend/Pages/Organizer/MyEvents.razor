@@ -16,7 +16,7 @@
     else if (!events.Any())
     {
         <div style="text-align: center; padding: 60px 20px;">
-            <MudIcon Icon="@Icons.Material.Filled.EventNote"
+            <MudIcon Icon="@Icons.Material.Filled.ConfirmationNumber"
                      Style="font-size: 72px; color: #546E7A; margin-bottom: 16px;" />
             <MudText Typo="Typo.h6" Style="color: #B0BEC5; margin-bottom: 8px;">No events found</MudText>
             <MudText Typo="Typo.body2" Style="color: #78909C;">You haven't created any events yet.</MudText>
@@ -30,13 +30,14 @@
                 <MudItem xs="12" sm="6" md="4" lg="3">
                     <MudCard Elevation="8"
                              Class="event-card h-100"
-                             Style="background-color: #37474F; border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
+                             Style="background-color: #0B192C; border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
 
                         <!-- Event Header -->
                         <div style="background: linear-gradient(135deg, #B71C1C 0%, #D32F2F 100%); padding: 20px; position: relative;">
-                            <MudIcon Icon="@Icons.Material.Filled.Event"
+                            <MudIcon Icon="@Icons.Material.Filled.ConfirmationNumber"
                                      Style="color: white; position: absolute; top: 16px; right: 16px; opacity: 0.8;"
-                                     Size="Size.Medium" />
+                                     Size="Size.Medium"
+                                     @onclick="@(() => Nav.NavigateTo($"/events/{ai.Id}/tickets"))"/>
                             <MudText Typo="Typo.h6"
                                      Style="color: white; font-weight: 600; line-height: 1.2; margin-bottom: 8px; padding-right: 40px;">
                                 @ai.Title

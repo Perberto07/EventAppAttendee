@@ -1,0 +1,97 @@
+﻿@page "/seatlayouts"
+@using EventApp.Shared.DTOs.Layout
+@using EventApp.Shared.DTOs.Seat
+@inject EventApp.Frontend.Services.LayoutClient.ILayoutClientServ LayoutService
+@inject IDialogService DialogService
+
+<h3 class="mb-4" style="color:white;">Manage Seat Layouts</h3>
+
+<MudPaper Class="p-4 mb-4" Style="background-color:#0B192C;">
+    <MudButton Variant="Variant.Outlined" Color="Color.Success">
+        Add New Seat Layout
+    </MudButton>
+</MudPaper>
+
+<MudPaper Class="p-2" Style="background-color:#0B192C;">
+    <MudTable Items="seatLayouts" Hover="true" Dense="true">
+        <HeaderContent>
+            <MudTh Style="background-color:#000000; color:white;">Name</MudTh>
+            <MudTh Style="background-color:#000000; color:white;">Sections</MudTh>
+            <MudTh Style="background-color:#000000; color:white;">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Style="background-color:#0B192C; color:white;">@context.Name</MudTd>
+            <MudTd Style="background-color:#0B192C; color:white;">
+                @if (context.Sections != null && context.Sections.Any())
+                {
+                    <ul>
+                        @foreach (var section in context.Sections)
+                        {
+                            var sec = section;
+                            <li>@sec.Name - Rows: @sec.Rows, Columns: @sec.Columns</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <span>No sections</span>
+                }
+            </MudTd>
+            <MudTd Style="background-color:#0B192C; color:white;">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small">
+                    View Sections
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudTr>
+                <MudTd ColSpan="3" Style="background-color:#0B192C; color:white; text-align:center;">
+                    No seat layouts found.
+                </MudTd>
+            </MudTr>
+        </NoRecordsContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<SeatLayoutDto> seatLayouts = new();
+    private CreateSeatLayoutSectionDto newSeatLayout = new();
+    private CreateLayoutSectionDto newSection = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSeatLayouts();
+    }
+
+    private async Task LoadSeatLayouts()
+    {
+        seatLayouts = await LayoutService.GetAllLayoutSection();
+    }
+
+    // private async Task OpenCreateDialog()
+    // {
+    //     var parameters = new DialogParameters
+    //     {
+    //         ["SeatLayout"] = newSeatLayout,
+    //         ["Section"] = newSection
+    //     };
+
+    //     var dialog = DialogService.Show<CreateSeatLayoutDialog>("Create Seat Layout", parameters);
+    //     var result = await dialog.Result;
+
+    //     if (!result.Canceled && result.Data is SeatLayoutDto created)
+    //     {
+    //         seatLayouts.Add(created);
+    //     }
+    // }
+
+    // private void ViewSections(SeatLayoutDto layout)
+    // {
+    //     var parameters = new DialogParameters
+    //     {
+    //         ["SeatLayout"] = layout
+    //     };
+
+    //     DialogService.Show<SeatLayoutSectionsDialog>($"Sections for {layout.Name}", parameters);
+    // }
+}

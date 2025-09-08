@@ -44,7 +44,7 @@
                                    Class="px-8 py-4 rounded-xl"
                                    Style="border-color: #6b7280; color: white; transition: all 0.3s ease;"
                                    onclick="GotoUpcommingEvent">
-                            See Upcomming Events
+                            <MudText Class="fw-bold">See Upcoming Events </MudText>
                         </MudButton>
                     </MudStack>
                 </MudItem>
@@ -82,7 +82,10 @@
                             <MudPaper Class="pa-2 mb-4"
                                       Style="background: #ef4444; color: white; text-align: center;
                      font-weight: bold; border-radius: 6px; width: 100%; max-width: 400px;">
-                                STAGE
+                                      <MudButton OnClick="ViewSeat">
+                                    STAGE
+                                      </MudButton>
+                                
                             </MudPaper>
 
                             <!-- Seat Layout -->
@@ -239,8 +242,13 @@
     {
         nav.NavigateTo("create-event");
     }
+
     private void GotoUpcommingEvent()
     {
         nav.NavigateTo("upcomming-events");
+    }
+    private void ViewSeat()
+    {
+        nav.NavigateTo("seat-layouts-view");
     }
 }

@@ -1,0 +1,60 @@
+﻿@page "/client-locations"
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IClientLocationServ LocationService
+@inject ISeatLayoutClient SeatLayoutService
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Locations</MudText>
+    <MudDivider Class="mb-4" />
+
+    <MudTable Items="_locations" Hover="true" Dense="true" Class="mt-4">
+        <HeaderContent>
+            <MudTh Style="background-color: #000000; color:white;">Name</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Address</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Style="background-color: #0B192C; color:white;">@context.Name</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">@context.Address</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">
+                <MudButton Color="Color.Info" Variant="Variant.Outlined" Size="Size.Small" OnClick="() => ViewLocation(context)">
+                    View
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private List<LocationDto> _locations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLocations();
+    }
+
+    private async Task LoadLocations()
+    {
+        _locations = await LocationService.GetAllAsync();
+    }
+
+    
+    private async Task ViewLocation(LocationDto location)
+    {
+        var details = await LocationService.GetByIdAsync(location.Id);
+
+        if (details is null)
+        {
+            Snackbar.Add("Failed to load location details", Severity.Error);
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            ["Location"] = details
+        };
+
+        DialogService.Show<LocationDetailDialog>("Location Details", parameters);
+    }
+}

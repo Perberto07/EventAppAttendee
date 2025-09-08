@@ -1,0 +1,37 @@
+﻿@* @inject IClientLocationServ locationServ
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Create New Location</MudText>
+        <MudTextField @bind-Value="_model.Name" Label="Name" Required="true" Class="mt-3" />
+        <MudTextField @bind-Value="_model.Address" Label="Address" Required="true" Class="mt-3" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Create">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    private CreateLocationDto _model = new();
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Create()
+    {
+        try
+        {
+            await locationServ.CreateAsync(_model);
+            Snackbar.Add("Location created successfully", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch
+        {
+            Snackbar.Add("Failed to create location", Severity.Error);
+        }
+    }
+}
+ *@

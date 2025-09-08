@@ -1,0 +1,147 @@
+﻿@* @page "/seat-layouts/{LayoutId:guid}/seats"
+@inject ISeatLayoutClient SeatLayoutService
+@inject LoadingService LoadingService
+
+<LoadingComponent/>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudText Typo="Typo.h4" GutterBottom="true">Seat Layout Viewer</MudText>
+    <MudDivider Class="mb-4" />
+
+    <!-- Stage -->
+    <MudPaper Style="width: 60%; height: 80px; display: flex;
+                 justify-content: center; align-items: center;
+                 margin: 0 auto 20px auto; border-radius: 8px;
+                 background-color:gray; color: black"
+              Elevation="2">
+        <MudText Typo="Typo.h6" Align="Align.Center">
+            Stage
+        </MudText>
+    </MudPaper>
+
+    @if (isLoading)
+    {
+        <div class="d-block justify-center align-center" style="height:200px;">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+        </div>
+    }
+    else if (totalPages == 0)
+    {
+        <MudText>No seats found for this event.</MudText>
+    }
+    else
+    {
+        <!-- Section Viewer with seats -->
+        <div class="d-flex flex-column gap-3 mb-4 bg-transparent m-5">
+            @for (int i = 1; i <= totalPages && i <= 100; i++) // safety check
+            {
+                var CurrentIndex = i;
+                <MudPaper style="background-color:transparent; display:flex;
+                                         flex-direction:column; align-items:center; padding:10px;"
+                          Elevation="0">
+
+                    <!-- Section Button -->
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               OnClick="() => OpenSectionDialog(CurrentIndex)" Class="mb-3">
+                        Section @CurrentIndex
+                    </MudButton>
+
+                    <!-- Seat Grid -->
+                    <MudPaper Class="p-2"
+                              Style="display:flex; flex-direction:column; gap:5px;
+                                     align-items:center; background-color:black; width:auto">
+                        @for (int row = 1; row <= 3; row++)
+                        {
+                            <div style="display:flex; gap:5px;">
+                                @for (int col = 1; col <= 10; col++)
+                                {
+                                    var isAvailable = GetRandomSeatStatus();
+
+                                    <MudIcon Icon="@Icons.Material.Filled.EventSeat"
+                                             Color="@(isAvailable ? Color.Success : Color.Surface)"
+                                             Style="font-size:28px; margin-inline: auto;" />
+                                }
+                            </div>
+                        }
+                    </MudPaper>
+                </MudPaper>
+            }
+        </div>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid LayoutId { get; set; }
+    private static readonly Random _random = new Random();
+    private bool isLoading = true;
+    private int pageSize;
+    private int totalPages = 0;
+    [Inject] public IDialogService DialogService { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            LoadingService.Show("Loading...");
+            isLoading = true;
+
+            // Use a safe fallback for the very first call
+            var pagination = new PaginationParams { PageNumber = 1 };
+            var result = await SeatLayoutService.GetSeatsPagedAsync(LayoutId, pagination);
+
+            // Take the real values from backend
+            pageSize = result.PageSize;
+            totalPages = result.TotalPages;
+
+            Console.WriteLine($"TotalCount: {result.TotalCount}, PageSize: {pageSize}, TotalPages: {result.TotalPages}");
+        }
+        finally
+        {
+            isLoading = false;
+            LoadingService.Hide();
+        }
+    }
+
+    private bool GetRandomSeatStatus()
+    {
+        return _random.Next(0, 2) == 0;
+    }
+
+    private string GetSectionClass(int section)
+    {
+        return $"p-4 cursor-pointer bg-dark";
+    }
+
+    private async Task OpenSectionDialog(int page)
+    {
+
+        LoadingService.Show("Loading...");
+        StateHasChanged();
+        var pagination = new PaginationParams { PageNumber = page, PageSize = pageSize };
+        var result = await SeatLayoutService.GetSeatsPagedAsync(LayoutId, pagination);
+
+        var seatRows = result.Items?
+            .GroupBy(s => s.RowNumber)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderBy(s => s.ColumnNumber).ToList()
+            ) ?? new Dictionary<int, List<SeatDto>>();
+
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = false,
+            CloseButton = true
+        };
+        var parameters = new DialogParameters
+        {
+            ["SeatRows"] = seatRows,
+            ["SectionNumber"] = page
+        };
+        DialogService.Show<SeatSectionViewer>(null, parameters, options);
+
+        LoadingService.Hide();
+        StateHasChanged();
+    }
+       
+    }
+} *@

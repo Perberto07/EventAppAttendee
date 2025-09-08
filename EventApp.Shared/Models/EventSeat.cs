@@ -12,17 +12,16 @@ namespace EventApp.Shared.Models
         public Guid EventId { get; set; }
         public Event Event { get; set; }
 
-        public Guid SeatId { get; set; }
-        public Seat Seat { get; set; }
-
-        public bool IsBooked { get; set; } = false;
         public DateTime? ReservedUntilTime { get; set; }
         [Column("SeatStatus")]
         public SeatReservationStatus SeatStatus { get; set; } = SeatReservationStatus.Available;
 
         [Timestamp]
         public byte[] RowVersion { get; set; } = null!;
+        public Guid SeatId { get; set; }
 
+        public Seat Seat { get; set; }
+        public bool IsBooked { get; set; }
         public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
     }
 }

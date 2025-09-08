@@ -1,0 +1,90 @@
+﻿@page "/seatlayoutsr/{LocationId:guid}"
+@using EventApp.Shared.DTOs.Location
+@using EventApp.Shared.DTOs.Seat
+@inject ILayoutClientServ LayoutService
+@inject IClientLocationService LocationService
+
+<h3 class="mb-4" style="color:white;">Seat Layouts</h3>
+
+@if (location == null)
+{
+    <MudText Color="Color.Error">Loading location...</MudText>
+}
+else
+{
+    <MudText Typo="Typo.subtitle1" Class="mb-2">Address: @location.Address</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-2">
+        Status: 
+        <MudChip T="string" Color="@(location.IsActive ? Color.Success : Color.Default)" Variant="Variant.Filled">
+            @(location.IsActive ? "Active" : "Inactive")
+        </MudChip>
+    </MudText>
+
+    <MudDivider Class="my-2" />
+
+    @if (location.SeatLayouts == null || !location.SeatLayouts.Any())
+    {
+        <MudText>No seat layouts bound to this location.</MudText>
+    }
+    else
+    {
+        @foreach (var layout in location.SeatLayouts)
+        {
+            var layoutWithSections = layoutCache.ContainsKey(layout.Id) 
+                ? layoutCache[layout.Id] 
+                : null;
+                var lyt = layout;
+            <MudPaper Class="p-3 mb-3" Style="background-color:#0B192C; color:white;">
+                <MudText Typo="Typo.subtitle1">@lyt.Name</MudText>
+
+                @if (layoutWithSections == null)
+                {
+                    <MudText>Loading sections...</MudText>
+                }
+                else if (!layoutWithSections.Sections.Any())
+                {
+                    <MudText>No sections found for this layout.</MudText>
+                }
+                else
+                {
+
+                    foreach (var section in layoutWithSections.Sections)
+                    {
+                        var sec = section;
+                        <MudPaper Class="d-flex flex-column mb-1 justify-content-center align-items-center">
+                            <MudText> @sec.Name</MudText>
+                            <MudText> @sec.Rows R  * @sec.Columns C</MudText>
+                            <MudText> @sec.TotalSeats</MudText>
+                        </MudPaper>
+                    }
+                }
+            </MudPaper>
+        }
+    }
+}
+
+@code {
+    [Parameter]
+    public Guid LocationId { get; set; }
+
+    private LocationDto? location;
+    private Dictionary<Guid, SeatLayoutDto> layoutCache = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load location including seat layouts
+        location = await LocationService.GetLocationWithSeatLayoutsAsync(LocationId);
+
+        if (location?.SeatLayouts != null)
+        {
+            foreach (var layout in location.SeatLayouts)
+            {
+                var layoutWithSections = await LayoutService.GetSeatLayoutWithSectionsAsync(layout.Id);
+                if (layoutWithSections != null)
+                {
+                    layoutCache[layout.Id] = layoutWithSections;
+                }
+            }
+        }
+    }
+}

@@ -60,14 +60,23 @@ namespace EventApp.Services.HQAuth
             return _jwtService.GenerateToken(user);
         }
 
-        public async Task<string> LoginAsync(LoginRequestDto dto)
+        public async Task<LoginResultDto> LoginAsync(LoginRequestDto dto)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null || !VerifyPassword(dto.Password, user.PasswordHash))
-                throw new InvalidOperationException("Invalid credentials.");
 
-            return _jwtService.GenerateToken(user);
+            if (user == null)
+                return new LoginResultDto { Success = false, ErrorMessage = "Username not found." };
+
+            if (!VerifyPassword(dto.Password, user.PasswordHash))
+                return new LoginResultDto { Success = false, ErrorMessage = "Incorrect password." };
+
+            return new LoginResultDto
+            {
+                Success = true,
+                Token = _jwtService.GenerateToken(user)
+            };
         }
+
 
         public async Task<bool> StartForgotPasswordAsync(string email)
         {

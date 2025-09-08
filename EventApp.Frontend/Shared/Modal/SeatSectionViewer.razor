@@ -1,0 +1,60 @@
+﻿@inject IDialogService DialogService
+
+<LoadingComponent/>
+<MudDialog Style="background-color: #0B192C">
+    <TitleContent>
+        <MudPaper Style="background-color:transparent ;display:flex; justify-content:center; align-items:center">
+            <MudText Typo="Typo.h6" Style="color:#FF9800; font-weight:bold;">
+                Section @SectionNumber
+            </MudText>
+        </MudPaper>
+    </TitleContent>
+
+    <DialogContent>
+        @if (SeatRows != null && SeatRows.Any())
+        {
+            <MudPaper Class="d-block overflow-scroll justify-content-center align-content-center"
+                      Style="background-color: #0F4C75; max-height:70vh; padding:10px;">
+                @foreach (var row in SeatRows.OrderBy(r => r.Key))
+                {
+                    <div class="d-flex mb-2">
+                        @foreach (var seat in row.Value)
+                        {
+                            <MudPaper Class="m-1" Style="background-color:#FFFFFF; border-radius:4px;">
+                                <MudButton Color="@(seat.IsBooked? Color.Error: Color.Primary)"
+                                           Disabled="seat.IsBooked"
+                                           Variant="Variant.Text"
+                                           Style="width:30px; height:30px; min-width:30px; background-color:black; border-radius:unset">
+                                    @if (seat.IsBooked)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Outlined.EventSeat" Style="color:#00A8CC" />
+                                    }
+                                </MudButton>
+                            </MudPaper>
+                        }
+                    </div>
+                }
+            </MudPaper>
+        }
+        else
+        {
+            <MudText>No seats found in this section.</MudText>
+        }
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Primary" Variant="Variant.Text">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Dictionary<int, List<SeatDto>> SeatRows { get; set; } = new();
+    [Parameter] public int SectionNumber { get; set; }
+
+    private void Close() => MudDialog.Close();
+}

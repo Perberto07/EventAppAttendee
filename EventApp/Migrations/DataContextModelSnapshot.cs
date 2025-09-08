@@ -51,6 +51,35 @@ namespace EventApp.Migrations
                     b.ToTable("AttendeeUser");
                 });
 
+            modelBuilder.Entity("EventApp.Shared.Models.Conversation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("OrganizerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminId");
+
+                    b.HasIndex("OrganizerId");
+
+                    b.ToTable("Conversations");
+                });
+
             modelBuilder.Entity("EventApp.Shared.Models.Event", b =>
                 {
                     b.Property<Guid>("Id")
@@ -64,18 +93,20 @@ namespace EventApp.Migrations
                     b.Property<DateTime>("EndDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("EventLayoutId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("LocationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("OrganizerId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<Guid>("SeatLayoutId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("StartDateTime")
                         .HasColumnType("datetime2");
@@ -89,9 +120,68 @@ namespace EventApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SeatLayoutId");
+                    b.HasIndex("LocationId");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.EventLayout", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId")
+                        .IsUnique();
+
+                    b.ToTable("EventLayouts");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.EventLayoutSection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Columns")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EventLayoutId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PositionX")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Rows")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalSeats")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("isReserved")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventLayoutId");
+
+                    b.ToTable("EventLayoutSections");
                 });
 
             modelBuilder.Entity("EventApp.Shared.Models.EventSeat", b =>
@@ -131,6 +221,143 @@ namespace EventApp.Migrations
                     b.ToTable("EventSeats");
                 });
 
+            modelBuilder.Entity("EventApp.Shared.Models.EventTransaction", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("isActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("isApprove")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("isPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Transactions");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.LayoutSection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Columns")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Rows")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SeatLayoutId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("TotalSeats")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("isActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("positionX")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeatLayoutId");
+
+                    b.ToTable("LayoutSections");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.Location", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Locations");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MessageText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("EventApp.Shared.Models.Seat", b =>
                 {
                     b.Property<Guid>("Id")
@@ -150,14 +377,9 @@ namespace EventApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("TicketId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.HasIndex("SeatLayoutId");
-
-                    b.HasIndex("TicketId");
 
                     b.ToTable("Seats");
                 });
@@ -168,15 +390,18 @@ namespace EventApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Columns")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Rows")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -195,7 +420,10 @@ namespace EventApp.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("EventSeatId")
+                    b.Property<int>("EventLayoutSectionId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("EventSeatId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("PurchaseDate")
@@ -206,6 +434,8 @@ namespace EventApp.Migrations
                     b.HasIndex("AttendeeId");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("EventLayoutSectionId");
 
                     b.HasIndex("EventSeatId");
 
@@ -245,21 +475,71 @@ namespace EventApp.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("LocationSeatLayout", b =>
+                {
+                    b.Property<Guid>("LocationsId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SeatLayoutsId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("LocationsId", "SeatLayoutsId");
+
+                    b.HasIndex("SeatLayoutsId");
+
+                    b.ToTable("LocationSeatLayout");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.Conversation", b =>
+                {
+                    b.HasOne("EventApp.Shared.Models.User", "Admin")
+                        .WithMany()
+                        .HasForeignKey("AdminId");
+
+                    b.HasOne("EventApp.Shared.Models.User", "Organizer")
+                        .WithMany()
+                        .HasForeignKey("OrganizerId");
+
+                    b.Navigation("Admin");
+
+                    b.Navigation("Organizer");
+                });
+
             modelBuilder.Entity("EventApp.Shared.Models.Event", b =>
                 {
-                    b.HasOne("EventApp.Shared.Models.SeatLayout", "SeatLayout")
+                    b.HasOne("EventApp.Shared.Models.Location", "Location")
                         .WithMany()
-                        .HasForeignKey("SeatLayoutId")
+                        .HasForeignKey("LocationId");
+
+                    b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.EventLayout", b =>
+                {
+                    b.HasOne("EventApp.Shared.Models.Event", "Event")
+                        .WithOne("EventLayout")
+                        .HasForeignKey("EventApp.Shared.Models.EventLayout", "EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("SeatLayout");
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.EventLayoutSection", b =>
+                {
+                    b.HasOne("EventApp.Shared.Models.EventLayout", "EventLayout")
+                        .WithMany("EventSections")
+                        .HasForeignKey("EventLayoutId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EventLayout");
                 });
 
             modelBuilder.Entity("EventApp.Shared.Models.EventSeat", b =>
                 {
                     b.HasOne("EventApp.Shared.Models.Event", "Event")
-                        .WithMany("EventSeats")
+                        .WithMany()
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -275,21 +555,62 @@ namespace EventApp.Migrations
                     b.Navigation("Seat");
                 });
 
-            modelBuilder.Entity("EventApp.Shared.Models.Seat", b =>
+            modelBuilder.Entity("EventApp.Shared.Models.EventTransaction", b =>
+                {
+                    b.HasOne("EventApp.Shared.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EventApp.Shared.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.LayoutSection", b =>
                 {
                     b.HasOne("EventApp.Shared.Models.SeatLayout", "SeatLayout")
-                        .WithMany("Seats")
+                        .WithMany("LayoutSections")
                         .HasForeignKey("SeatLayoutId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EventApp.Shared.Models.Ticket", "Ticket")
+                    b.Navigation("SeatLayout");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.Message", b =>
+                {
+                    b.HasOne("EventApp.Shared.Models.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EventApp.Shared.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("TicketId");
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.Seat", b =>
+                {
+                    b.HasOne("EventApp.Shared.Models.SeatLayout", "SeatLayout")
+                        .WithMany()
+                        .HasForeignKey("SeatLayoutId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("SeatLayout");
-
-                    b.Navigation("Ticket");
                 });
 
             modelBuilder.Entity("EventApp.Shared.Models.Ticket", b =>
@@ -306,17 +627,36 @@ namespace EventApp.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("EventApp.Shared.Models.EventSeat", "EventSeat")
+                    b.HasOne("EventApp.Shared.Models.EventLayoutSection", "EventLayoutSection")
                         .WithMany("Tickets")
-                        .HasForeignKey("EventSeatId")
+                        .HasForeignKey("EventLayoutSectionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("EventApp.Shared.Models.EventSeat", null)
+                        .WithMany("Tickets")
+                        .HasForeignKey("EventSeatId");
 
                     b.Navigation("Attendee");
 
                     b.Navigation("Event");
 
-                    b.Navigation("EventSeat");
+                    b.Navigation("EventLayoutSection");
+                });
+
+            modelBuilder.Entity("LocationSeatLayout", b =>
+                {
+                    b.HasOne("EventApp.Shared.Models.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EventApp.Shared.Models.SeatLayout", null)
+                        .WithMany()
+                        .HasForeignKey("SeatLayoutsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("EventApp.Shared.Models.AttendeeUser", b =>
@@ -324,10 +664,25 @@ namespace EventApp.Migrations
                     b.Navigation("Tickets");
                 });
 
+            modelBuilder.Entity("EventApp.Shared.Models.Conversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("EventApp.Shared.Models.Event", b =>
                 {
-                    b.Navigation("EventSeats");
+                    b.Navigation("EventLayout");
 
+                    b.Navigation("Tickets");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.EventLayout", b =>
+                {
+                    b.Navigation("EventSections");
+                });
+
+            modelBuilder.Entity("EventApp.Shared.Models.EventLayoutSection", b =>
+                {
                     b.Navigation("Tickets");
                 });
 
@@ -338,7 +693,7 @@ namespace EventApp.Migrations
 
             modelBuilder.Entity("EventApp.Shared.Models.SeatLayout", b =>
                 {
-                    b.Navigation("Seats");
+                    b.Navigation("LayoutSections");
                 });
 #pragma warning restore 612, 618
         }

@@ -59,6 +59,37 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
         NotifyAuthenticationStateChanged(authState);
     }
 
+    public async Task<Guid?> GetUserIdAsync()
+    {
+        var token = await GetRawTokenAsync();
+        if (string.IsNullOrWhiteSpace(token)) return null;
+
+        var claims = ParseClaimsFromJwt(token);
+        var idClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (Guid.TryParse(idClaim, out var userId))
+            return userId;
+
+        return null;
+    }
+
+    public async Task<string?> GetUserNameAsync()
+    {
+        var token = await GetRawTokenAsync();
+        if (string.IsNullOrWhiteSpace(token)) return null;
+
+        var claims = ParseClaimsFromJwt(token);
+        return claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+    }
+
+    public async Task<string?> GetUserRoleAsync()
+    {
+        var token = await GetRawTokenAsync();
+        if (string.IsNullOrWhiteSpace(token)) return null;
+
+        var claims = ParseClaimsFromJwt(token);
+        return claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    }
     public async Task NotifyUserLogout()
     {
         await _localStorage.RemoveItemAsync("authToken");
@@ -93,6 +124,10 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
         return claims;
     }
 
+    public async Task<string?> GetRawTokenAsync()
+    {
+        return await _localStorage.GetItemAsStringAsync("authToken");
+    }
     private static byte[] ParseBase64WithoutPadding(string base64)
     {
         switch (base64.Length % 4)

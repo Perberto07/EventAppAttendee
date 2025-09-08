@@ -1,0 +1,95 @@
+﻿@page "/locations"
+@inject NavigationManager NavManager
+@inject IClientLocationService LocationService
+@inject IDialogService DialogService
+
+<h3 class="mb-4" style="color:white;">Manage Locations</h3>
+
+<MudPaper Class="p-4 mb-4" Style="background-color:#0B192C;">
+    <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="OpenCreateDialog">
+        Add New Location
+    </MudButton>
+</MudPaper>
+
+<MudPaper Class="p-2" Style="background-color:#0B192C;">
+    <MudTable Items="locations" Hover="true">
+        <HeaderContent>
+            <MudTh Style="background-color: #000000; color:white;">Name</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Address</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Status</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Style="background-color: #0B192C; color:white;">@context.Name</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">@context.Address</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">
+                <MudChip T="string"
+                         Color="@((context.IsActive) ? Color.Success : Color.Default)"
+                         Variant="Variant.Outlined">
+                    @(context.IsActive ? "Active" : "Inactive")
+                </MudChip>
+            </MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="me-2"
+                           OnClick="() => ViewLocation(context.Id)">
+                    View
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Warning"
+                           Size="Size.Small"
+                           OnClick="() => ToggleStatus(context)">
+                    Status
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudTr>
+                <MudTd ColSpan="4" Style="background-color: #0B192C; color:white; text-align:center;">
+                    No locations found.
+                </MudTd>
+            </MudTr>
+        </NoRecordsContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<LocationDto> locations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        locations = await LocationService.GetAllLocationsAsync();
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = DialogService.Show<CreateLocationDialog>("Create Location");
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is LocationDto newLoc)
+        {
+            locations.Add(newLoc);
+        }
+    }
+
+    private async Task ToggleStatus(LocationDto loc)
+    {
+        bool newStatus = !loc.IsActive;
+        var success = await LocationService.UpdateLocationStatusAsync(loc.Id, newStatus);
+
+        if (success)
+        {
+            loc.IsActive = newStatus;
+            StateHasChanged();
+        }
+        else
+        {
+            // optional: show an error snackbar
+            Console.WriteLine("Failed to update location status.");
+        }
+    }
+
+    private async Task ViewLocation(Guid locationId)
+    {
+        NavManager.NavigateTo($"/seatlayout/{locationId}");
+    }
+}

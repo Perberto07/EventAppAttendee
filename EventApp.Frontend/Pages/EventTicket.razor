@@ -1,0 +1,64 @@
+﻿@page "/events/{eventId:guid}/tickets"
+@inject ITicketClientService TicketService
+@inject ISnackbar Snackbar
+
+<PageTitle>Ticket History</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4 fw-bold">🎟 Ticket History</MudText>
+
+    @if (tickets == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (!tickets.Any())
+    {
+        <MudAlert Severity="Severity.Info">No tickets found for this event.</MudAlert>
+    }
+    else
+    {
+        <MudTable Items="tickets" Hover="true" Dense="true">
+            <HeaderContent>
+                <MudTh Style="background-color: #000000; color:white;">Event</MudTh>
+                <MudTh Style="background-color: #000000; color:white;">Seat</MudTh>
+                <MudTh Style="background-color: #000000; color:white;">Customer</MudTh>
+                <MudTh Style="background-color: #000000; color:white;">Email</MudTh>
+                <MudTh Style="background-color: #000000; color:white;">Purchase Date</MudTh>
+                <MudTh Style="background-color: #000000; color:white;">Price</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Event" Style="background-color: #0B192C; color:white;">@context.EventTitle</MudTd>
+                <MudTd DataLabel="Seat" Style="background-color: #0B192C; color:white;">@context.SeatNumber</MudTd>
+                <MudTd DataLabel="Customer" Style="background-color: #0B192C; color:white;">@context.attendeeName</MudTd>
+                <MudTd DataLabel="Email" Style="background-color: #0B192C; color:white;">@context.AttendeeEmail</MudTd>
+                <MudTd DataLabel="Purchase Date" Style="background-color: #0B192C; color:white;">
+                    @{
+                        var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+                        var localDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(context.PurchaseDate, DateTimeKind.Utc), phTimeZone);
+                    }
+                    @localDate.ToString("MMM dd, yyyy hh:mm tt")
+                </MudTd>
+                <MudTd DataLabel="Price" Style="background-color: #0B192C; color:white;">
+                    @context.Price.ToString("C")
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid EventId { get; set; }
+    private List<TicketDto>? tickets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            tickets = await TicketService.GetTicketsByEventAsync(EventId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load tickets: {ex.Message}", Severity.Error);
+        }
+    }
+}

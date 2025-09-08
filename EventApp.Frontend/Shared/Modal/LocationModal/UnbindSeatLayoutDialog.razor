@@ -1,0 +1,57 @@
+﻿@* @inject IClientLocationServ LocationServ
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Unbind Seat Layout</MudText>
+
+        @if (Location.SeatLayouts?.Any() == true)
+        {
+            <MudSelect T="Guid" Label="Select Layout to Unbind" @bind-Value="_selectedLayout">
+                <MudSelectItem Value="@(default(Guid))">-- Select a layout --</MudSelectItem>
+                @foreach (var seat in Location.SeatLayouts)
+                {
+                    <MudSelectItem Value="@seat.Id">@seat.Name</MudSelectItem>
+                }
+            </MudSelect>
+        }
+        else
+        {
+            <MudText>No seat layouts bound to this location.</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Error" OnClick="Unbind" Disabled="@(_selectedLayout == default)">Unbind</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public LocationDto Location { get; set; } = default!;
+
+    private Guid _selectedLayout = default;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Unbind()
+    {
+        if (_selectedLayout == default)
+        {
+            Snackbar.Add("Please select a layout", Severity.Warning);
+            return;
+        }
+
+        // Create a list with the single selected layout
+        var success = await LocationServ.UnbindSeatLayoutsAsync(Location.Id, new List<Guid> { _selectedLayout });
+        if (success)
+        {
+            Snackbar.Add("Seat layout unbound successfully", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add("Failed to unbind seat layout", Severity.Error);
+        }
+    }
+} *@

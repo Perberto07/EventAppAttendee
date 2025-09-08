@@ -86,14 +86,17 @@ namespace EventApp.Controllers
         [Authorize]
         public async Task<IActionResult> CheckAvailability([FromServices] IEventAvailabilityService availability,
                                                           [FromQuery] DateTime start,
-                                                          [FromQuery] DateTime end)
-                {
-                    if (end <= start)
-                        return BadRequest(new { message = "End must be after start." });
+                                                          [FromQuery] DateTime end,
+                                                          [FromQuery] Guid locationId,
+                                                          [FromQuery] Guid? excludeEventId = null)
+        {
+            if (end <= start)
+                return BadRequest(new { message = "End must be after start." });
 
-                    var ok = await availability.IsAvailableAsync(start, end);
-                    return Ok(new AvailabilityDto { Available = ok });
-                }
+            var ok = await availability.IsAvailableAsync(start, end, locationId, excludeEventId);
+            return Ok(new AvailabilityDto { Available = ok });
+        }
+
 
         [HttpGet("upcoming")]
         public async Task<ActionResult<List<EventDto>>> GetUpcomingEvents()
@@ -124,11 +127,11 @@ namespace EventApp.Controllers
             var userId = _httpContext.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
             var role = _httpContext.HttpContext?.User.FindFirstValue(ClaimTypes.Role);
 
-            if(userId is null || role is null) return Unauthorized();
+            if (userId is null || role is null) return Unauthorized();
 
             var delete = await _eventService.DeleteEventAsync(eventId, Guid.Parse(userId), role);
 
-            if(!delete) return Forbid();
+            if (!delete) return Forbid();
             return Ok(new { message = "event Deleted successfully" });
         }
     }

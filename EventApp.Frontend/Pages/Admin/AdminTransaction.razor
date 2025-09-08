@@ -1,0 +1,35 @@
+﻿@page "/admin/transactions"
+@inject IClientTransactionService TransactionClient
+@attribute [Authorize(Roles = "Admin")]
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Event Transactions</MudText>
+
+    <MudTable Items="myTransactions" Hover="true" Dense="true" Class="mt-4">
+        <HeaderContent>
+            <MudTh Style="background-color: #000000; color:white;">Event</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">User</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Email</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Price</MudTh>
+            @* <MudTh Style="background-color: #000000; color:white;">Paid</MudTh> *@
+            <MudTh Style="background-color: #000000; color:white;">Approved</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Style="background-color: #0B192C; color:white;">@context.Event.Title</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">@context.User.Username</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">@context.User.Email</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">₱ @context.price.ToString("N2")</MudTd>
+            @* <MudTd Style="background-color: #0B192C; color:white;">@(context.isPaid ? "✅" : "❌")</MudTd> *@
+            <MudTd Style="background-color: #0B192C; color:white;">@(context.isApprove ? "✅" : "--")</MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private List<EventTransaction> myTransactions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        myTransactions = await TransactionClient.GetAllTransactionsAsync();
+    }
+}

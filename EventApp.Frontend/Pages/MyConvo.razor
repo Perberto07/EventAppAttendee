@@ -1,0 +1,141 @@
+﻿@page "/messenger"
+@inject IClientMessageServ ChatService
+@inject JwtAuthenticationStateProvider AuthProvider
+@inject ChatHubClientServ ChatHubClient
+
+<h3>My Chat</h3>
+
+@if (loading)
+{
+    <p>Loading...</p>
+}
+else if (currentUserId == null)
+{
+    <p>You are not logged in.</p>
+}
+else
+{
+    <p>Welcome, <strong>@currentUserName</strong></p>
+
+    <div>
+        <h4>My Conversations</h4>
+        @if (conversations.Count == 0 && currentUserRole != UserRole.Admin)
+        {
+            <p>No conversations yet.</p>
+            <button @onclick="CreateConversationWithAdmin">Start Chat with Admin</button>
+        }
+        else
+        {
+            <ul>
+                @foreach (var conv in conversations)
+                {
+                    <li @onclick="() => LoadConversation(conv)">
+                        <strong>ID:</strong> @conv.Id - <strong>Admin:</strong> @conv.AdminUsername - <strong>Organizer:</strong> @conv.OrganizerUsername
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+
+    @if (selectedConversation != null)
+    {
+        <h4>Messages</h4>
+        <div style="border:1px solid #ccc; padding:10px; max-height:300px; overflow-y:auto;">
+            @if (selectedConversation.Messages != null && selectedConversation.Messages.Count > 0)
+            {
+                @foreach (var msg in selectedConversation.Messages)
+                {
+                    <p><strong>@msg.SenderUsername:</strong> @msg.MessageText</p>
+                }
+            }
+            else
+            {
+                <p>No messages yet. Say hi 👋</p>
+            }
+        </div>
+
+        <input @bind="newMessage" placeholder="Type a message..." />
+        <button @onclick="SendMessageAsync">Send</button>
+    }
+}
+
+@code {
+    private bool loading = true;
+    private Guid? currentUserId;
+    private string? currentUserName;
+    private UserRole currentUserRole;
+    private List<ConversationDto> conversations = new();
+    private ConversationDto? selectedConversation;
+    private string newMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentUserId = await AuthProvider.GetUserIdAsync();
+        currentUserName = await AuthProvider.GetUserNameAsync();
+        currentUserRole = Enum.Parse<UserRole>(await AuthProvider.GetUserRoleAsync());
+
+        if (currentUserId != null)
+        {
+            conversations = await ChatService.GetUserConversationsAsync(currentUserId.Value);
+            await ChatHubClient.StartAsync();
+
+            if (conversations.Count > 0)
+            {
+                await LoadConversation(conversations[0]);
+            }
+        }
+
+        ChatHubClient.OnMessageReceived += (msg) =>
+        {
+            if (selectedConversation != null && selectedConversation.Id == msg.ConversationId)
+            {
+                selectedConversation.Messages.Add(msg);
+                InvokeAsync(StateHasChanged);
+            }
+        };
+
+        
+        loading = false;
+    }
+
+    private async Task LoadConversation(ConversationDto conv)
+    {
+        if (currentUserId == null) return;
+
+        selectedConversation = await ChatService.GetConversationByIdAsync(conv.Id, currentUserId.Value);
+        await ChatHubClient.JoinConversation(conv.Id);
+    }
+
+    private async Task SendMessageAsync()
+    {
+        if (selectedConversation == null || string.IsNullOrWhiteSpace(newMessage)) return;
+
+        var dto = new SendMessageDto
+        {
+            ConversationId = selectedConversation.Id,
+            SenderId = currentUserId.Value,
+            MessageText = newMessage
+        };
+
+        var sentMessage = await ChatService.SendMessageAsync(dto);
+
+        selectedConversation.Messages.Add(sentMessage);
+        await ChatHubClient.SendMessage(sentMessage);
+        newMessage = "";
+    }
+
+    private async Task CreateConversationWithAdmin()
+    {
+        if (currentUserId == null) return;
+
+        // TODO: Replace with actual adminId (from config, lookup, or fixed account)
+        var adminId = Guid.Parse("fe3903cc-54a5-48e7-855e-4cee130e5954");
+
+        var conv = await ChatService.GetOrCreateConversationAsync(adminId, currentUserId.Value);
+        if (conv != null)
+        {
+            conversations.Add(conv);
+            selectedConversation = conv;
+        }
+    }
+}

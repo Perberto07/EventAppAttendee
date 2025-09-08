@@ -5,7 +5,7 @@ namespace EventApp.Frontend.Services.Auth
 {
     public interface IClientService
     {
-        Task<string?> LoginAsync(LoginRequestDto dto);
+        Task<LoginResultDto?> LoginAsync(LoginRequestDto dto);
         Task<string?> StartRegistrationAsync(string email);
         Task<string?> CompleteRegistrationAsync(CompleteRegistrationDto dto);
         Task LogoutAsync();

@@ -1,188 +1,247 @@
-﻿@page "/create-event"
+﻿@* @page "/create-event"
 @inject NavigationManager Nav
 @inject IEventService EventService
 @attribute [Authorize(Roles = "Organizer")]
 @inject ISeatLayoutClient SeatLayoutService
+@inject IClientLocationServ LocationService
+@inject ISnackbar Snackbar
+@inject LoadingService LoadingService
 
+<LoadingComponent />
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4 p-3">
-    <MudPaper Class="" Style="background-color: #37474f; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+    <MudPaper Class="" Style="background-color: #0B192C; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
         <!-- Event Header -->
-        <div style="background: linear-gradient(135deg, #B71C1C 0%, #D32F2F 100%); padding: 20px; position: relative;">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-2">
-                <MudIcon Icon="@Icons.Material.Filled.Add" Style="color: #B71C1C;" />
+        <div style="background: linear-gradient(135deg, #4C3A51 0%, #B25068 100%); padding: 20px; position: relative;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-1">
                 <MudText Typo="Typo.h4" Style="color: #ffffff; font-weight: 500;">
                     Create New Event
                 </MudText>
             </MudStack>
 
-            <MudText Typo="Typo.body1" Class="mb-4" Style="color: #b0bec5;">
+            <MudText Typo="Typo.body1" Class="mb-1" Style="color: #b0bec5;">
                 Fill in the details to create your event
             </MudText>
         </div>
         <MudDivider Class="mb-4" Style="border-color: #546e7a;" />
         <MudPaper Style="background-color: inherit; margin: 5px">
 
-        
-        <EditForm Model="@eventDto" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator />
 
-            <MudGrid Spacing="3">
-                <!-- Title Field -->
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="eventDto.Title"
-                                  Label="Event Title"
-                                  Required="true"
-                                  FullWidth="true"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.Title"
-                                  AdornmentColor="Color.Error"
-                                  Variant="Variant.Text"
-                                  Style="background-color: #455a64; color:#ffffff;border-radius: 8px; padding:12px; label"
-                                  Class="mb-3" />
-                </MudItem>
+            <EditForm Model="@eventDto" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
 
-                <!-- Location Field -->
-                <MudItem xs="12">
-                    <MudNumericField @bind-Value="eventDto.Price"
-                                     Label="Ticket Price"
-                                     Required="true"
-                                     Min="0"
-                                     Step="0.01M"
-                                     Adornment="Adornment.Start"
-                                     AdornmentText="₱"
-                                     AdornmentColor="Color.Success"
-                                     Variant="Variant.Text"
-                                     Style="background-color: #455a64; color:#ffffff;border-radius: 8px; padding:12px; label"
-                                     Class="mb-3" />
-                </MudItem>
+                <MudGrid Spacing="3">
+                    <MudItem xs="12">
+                        <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px;margin-inline: 10px">
 
-                <!-- Description Field -->
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="eventDto.Description"
-                                  Label="Event Description"
-                                  Required="true"
-                                  FullWidth="true"
-                                  Lines="4"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.Description"
-                                  AdornmentColor="Color.Success"
-                                  Variant="Variant.Text"
-                                  Style="background-color: #455a64; color:#ffffff;border-radius: 8px; padding:12px; label"
-                                  Class="mb-4" />
-                </MudItem>
+                            <MudText Class="mb-1"
+                                     Style="color:white; font-weight:500;">
+                                Title
+                            </MudText>
+                            <MudTextField @bind-Value="eventDto.Title"
+                                          Required="true"
+                                          Variant="Variant.Text"
+                                          Placeholder="Enter title"
+                                          Class="flex-grow-1"
+                                          Style="background-color:black; color:#d3d3d3; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                        </MudPaper>
+                    </MudItem>
 
-                <!-- Date Fields -->
-                <MudItem xs="12" md="6">
-                    <MudDatePicker Date="@eventDto.StartDateTime"
-                                   DateChanged="@(date => OnDateOrTimeChanged(true, date))"
-                                   DateFormat="MM/dd/yyyy HH:mm"
-                                   PickerVariant="PickerVariant.Dialog"
-                                   Label="Start Date & Time"
-                                   Required="true"
-                                   Editable="true"
-                                   Placeholder="Select start date"
-                                   Variant="Variant.Text"
-                                   Color="Color.Primary"
-                                       Style="background-color: lightblue; color:white; border-radius: 8px; padding:12px; label"
-                                   Class="mb-3" />
-                </MudItem>
 
-                <MudItem xs="12" md="6">
-                    <MudDatePicker Date="@eventDto.EndDateTime"
-                                   DateChanged="@(date => OnDateOrTimeChanged(false, date))"
-                                   DateFormat="MM/dd/yyyy HH:mm"
-                                   PickerVariant="PickerVariant.Dialog"
-                                   Label="End Date & Time"
-                                   Required="true"
-                                   Editable="true"
-                                   Placeholder="Select end date"
-                                   Variant="Variant.Text"
-                                   Color="Color.Primary"
-                                   Style="background-color: lightblue; color:white; border-radius: 8px; padding:12px; label"
-                                   Class="mb-3" />
-                </MudItem>
-                <MudItem xs="12" md="6">
-                    <MudSelect T="Guid"
-                               @bind-Value="eventDto.SeatLayoutId"
-                               Label="Seat Layout"
-                               Required="true"
-                               Variant="Variant.Text"
-                               Class="mb-3"
-                               Style="background-color: dodgerblue;color:white; border-radius: 8px; padding: 12px;">
-                        @foreach (var sl in seatLayouts)
-                        {
-                            <MudSelectItem Value="@(sl.Id)">
-                                @($"{sl.Name} ({sl.Rows} x {sl.Columns}, {sl.SeatCount} seats)")
-                            </MudSelectItem>
-                        }
-                    </MudSelect>
+                    <!-- Ticket Price -->
+                    <MudItem xs="12">
+                        <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px;margin-inline: 10px">
 
-                    <MudText style="color:red">
-                        You cannot Modify the SeatLayout Once Event Created!!!
-                    </MudText>
-                </MudItem>
+                            <MudText Class="mb-1" Style="color:white; font-weight:500;">
+                                Ticket Price
+                            </MudText>
 
-                <!-- Alert Messages -->
-                <MudItem xs="12">
-                    @if (!string.IsNullOrEmpty(availabilityMessage))
-                    {
-                        <MudAlert Severity="@availabilitySeverity"
-                                  Class="mb-3"
-                                  Style="border-radius: 8px; background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107;">
-                            @availabilityMessage
-                        </MudAlert>
-                    }
-                    @if (!string.IsNullOrEmpty(successMessage))
-                    {
-                        <MudAlert Severity="Severity.Success"
-                                  Class="mb-3"
-                                  Icon="@Icons.Material.Filled.CheckCircle"
-                                  Style="border-radius: 8px; background-color: rgba(76, 175, 80, 0.1); border-left: 4px solid #4caf50;">
-                            @successMessage
-                        </MudAlert>
-                    }
-                    @if (!string.IsNullOrEmpty(errorMessage))
-                    {
-                        <MudAlert Severity="Severity.Error"
-                                  Class="mb-3"
-                                  Icon="@Icons.Material.Filled.Error"
-                                  Style="border-radius: 8px; background-color: rgba(244, 67, 54, 0.1); border-left: 4px solid #f44336;">
-                            @errorMessage
-                        </MudAlert>
-                    }
-                </MudItem>
+                            <MudNumericField @bind-Value="eventDto.Price"
+                                             Required="true"
+                                             Min="1"
+                                             Step="0.01M"
+                                             Variant="Variant.Text"
+                                             Placeholder="Enter price"
+                                             Style="background-color:black; color:#d3d3d3; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                        </MudPaper>
+                    </MudItem>
 
-                <!-- Action Button -->
-                <MudItem xs="12">
-                    <MudStack Row="false"
-                              AlignItems="AlignItems.Center"
-                              Justify="Justify.Center"
-                              Class="mt-4">
-                        <MudButton OnClick="HandleValidSubmit"
-                                   Disabled="@(!canSubmit)"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Success"
-                                   StartIcon="@Icons.Material.Filled.Add"
-                                   Size="Size.Large"
-                                   Class="px-8 py-3"
-                                   Style="background: linear-gradient(45deg, #4caf50 30%, #66bb6a 90%);
+                    <!-- Event Description -->
+                    <MudItem xs="12">
+                        <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px;margin-inline: 10px">
+
+                            <MudText Class="mb-1" Style="color:white; font-weight:500;">
+                                Event Description
+                            </MudText>
+
+                            <MudTextField @bind-Value="eventDto.Description"
+                                          Required="true"
+                                          FullWidth="true"
+                                          Lines="4"
+                                          Variant="Variant.Text"
+                                          Placeholder="Enter event description"
+                                          Style="background-color:black; color:#d3d3d3; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                        </MudPaper>
+                    </MudItem>
+
+
+                    <!-- Date Fields -->
+                    <!-- Start Date -->
+                    <MudItem xs="12" md="6">
+                        <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px; margin-inline: 10px">
+
+                            <MudText Class="mb-1" Style="color:white; font-weight:500;">
+                                Start Date & Time
+                            </MudText>
+
+                            <MudDatePicker Date="@eventDto.StartDateTime"
+                                           DateChanged="@(date => OnDateOrTimeChanged(true, date))"
+                                           DateFormat="MM/dd/yyyy HH:mm"
+                                           PickerVariant="PickerVariant.Inline"
+                                           Required="true"
+                                           Editable="true"
+                                           Variant="Variant.Text"
+                                           Color="Color.Primary"
+                                           Style="background-color:white; color: black; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                        </MudPaper>
+                    </MudItem>
+
+                    <!-- End Date -->
+                    <MudItem xs="12" md="6">
+                        <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px; margin-inline: 10px ">
+
+                            <MudText Class="mb-1" Style="color:white; font-weight:500;">
+                                End Date & Time
+                            </MudText>
+
+                            <MudDatePicker Date="@eventDto.EndDateTime"
+                                           DateChanged="@(date => OnDateOrTimeChanged(false, date))"
+                                           DateFormat="MM/dd/yyyy HH:mm"
+                                           PickerVariant="PickerVariant.Inline"
+                                           Required="true"
+                                           Editable="true"
+                                           Variant="Variant.Text"
+                                           Color="Color.Primary"
+                                           Style="background-color: white; color: black; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                        </MudPaper>
+                    </MudItem>
+
+
+                    <MudItem xs="12" md="6">
+                        <!-- Select Location -->
+                        <MudPaper Class="d-flex flex-column mb-3" Style="padding:12px; background-color:inherit; border-radius:8px; margin-inline:10px">
+                            <MudText Class="mb-1" Style="color:white; font-weight:500;">
+                                Select Location
+                            </MudText>
+                            <MudSelect T="Guid?"
+                                       @bind-Value="selectedLocationId"
+                                       Required="true"
+                                       Placeholder="Select Location"
+                                       Style="background-color:white; color: black; border:1px solid #2196f3; border-radius:6px; padding:8px;">
+                                @foreach (var loc in locations)
+                                {
+                                    <MudSelectItem Value="@(loc.Id as Guid?)">@loc.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudPaper>
+
+                        <!-- Seat Layout Selector -->
+                        
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudPaper Class="d-flex flex-column mb-3" Style="padding:12px; background-color: inherit; border-radius:8px; margin-inline: 10px">
+                            <MudText Class="mb-1" Style="color:white; font-weight:500;">
+                                Select Seat Layout
+                            </MudText>
+                            <MudSelect @bind-Value="eventDto.SeatLayoutId"
+                                       Required="true"
+                                       Disabled="@(!seatLayouts.Any())"
+                                       Placeholder="Select Seat Layout"
+                                       Style="background-color:white; color: black; border:1px solid #2196f3; border-radius:6px; padding:8px;">
+                                <MudSelectItem Value="@Guid.Empty" Disabled="true">-- Select Seat Layout --</MudSelectItem>
+
+                                @foreach (var sl in seatLayouts)
+                                {
+                                    <MudSelectItem Value="@sl.Id">
+                                        @($"{sl.Name} ({sl.Rows}x{sl.Columns}, Seats: {sl.SeatCount}, Php:{sl.Price})")
+                                    </MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudPaper>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudText Style="color:red; font-weight:500;">
+                            You cannot Modify the SeatLayout Once Event Created!!!
+                        </MudText>
+                    </MudItem>
+                    
+                    
+
+                    <!-- Alert Messages -->
+                    <MudItem xs="12">
+                        <MudPaper style="background-color: #03346E; margin-inline: 15px">
+                            @if (!string.IsNullOrEmpty(availabilityMessage))
+                            {
+                                <MudAlert Severity="@availabilitySeverity"
+                                          Class="mb-3"
+                                          Style="border-radius: 8px; background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107;">
+                                    @availabilityMessage
+                                </MudAlert>
+                            }
+                            @if (!string.IsNullOrEmpty(successMessage))
+                            {
+                                <MudAlert Severity="Severity.Success"
+                                          Class="mb-3"
+                                          Icon="@Icons.Material.Filled.CheckCircle"
+                                          Style="border-radius: 8px; background-color: rgba(76, 175, 80, 0.1); border-left: 4px solid #4caf50;">
+                                    @successMessage
+                                </MudAlert>
+                            }
+                            @if (!string.IsNullOrEmpty(errorMessage))
+                            {
+                                <MudAlert Severity="Severity.Error"
+                                          Class="mb-3"
+                                          Icon="@Icons.Material.Filled.Error"
+                                          Style="border-radius: 8px; background-color: rgba(244, 67, 54, 0.1); border-left: 4px solid #f44336;">
+                                    @errorMessage
+                                </MudAlert>
+                            }
+                        </MudPaper>
+                    </MudItem>
+
+                    <!-- Action Button -->
+                    <MudItem xs="12">
+                        <MudStack Row="false"
+                                  AlignItems="AlignItems.Center"
+                                  Justify="Justify.Center"
+                                  Class="mt-4">
+                            <MudButton OnClick="HandleValidSubmit"
+                                       Disabled="@(!canSubmit)"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Success"
+                                       StartIcon="@Icons.Material.Filled.Add"
+                                       Size="Size.Large"
+                                       Class="px-8 py-3"
+                                       Style="background: linear-gradient(45deg, #4caf50 30%, #66bb6a 90%);
                                           color: white; border-radius: 12px; text-transform: none;
                                           font-weight: 600; box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);">
-                            Create Event
-                        </MudButton>
-                    </MudStack>
-                </MudItem>
-            </MudGrid>
+                                Create Event
+                            </MudButton>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
 
-            <ValidationSummary style="color: #ff7043; margin-top: 16px; padding: 12px; background-color: rgba(255, 112, 67, 0.1); border-radius: 8px;" />
-        </EditForm>
+                <ValidationSummary style="color: #ff7043; margin-top: 16px; padding: 12px; background-color: rgba(255, 112, 67, 0.1); border-radius: 8px;" />
+            </EditForm>
         </MudPaper>
     </MudPaper>
 </MudContainer>
 
 @code {
     private CreateEventDto eventDto = new();
-    private IEnumerable<SeatLayoutDto> seatLayouts = new List<SeatLayoutDto>();
+    private List<SeatLayoutDto> seatLayouts = new List<SeatLayoutDto>();
+    private List<LocationDto> locations = new();
     private string? successMessage;
     private string? errorMessage;
     private string? availabilityMessage;
@@ -191,35 +250,81 @@
 
     protected override async Task OnInitializedAsync()
     {
-        seatLayouts = await SeatLayoutService.GetAllAsync(); // returns DTOs now
+        locations = await LocationService.GetAllAsync();
+        // seatlayouts = await SeatLayoutService.getallasync();
+    }
+
+    private Guid? selectedLocationId
+    {
+        get => eventDto.LocationId;
+        set
+        {
+            if (eventDto.LocationId != value)
+            {
+                eventDto.LocationId = value;
+
+                // Only call method if value has a real Guid
+                if (value.HasValue && value.Value != Guid.Empty)
+                    _ = OnLocationChanged(value.Value);
+                else
+                {
+                    seatLayouts.Clear();
+                    eventDto.SeatLayoutId = Guid.Empty;
+                }
+            }
+        }
     }
 
     private async Task HandleValidSubmit()
     {
         if (!canSubmit)
         {
-            errorMessage = "Please ensure the event time is valid and available.";
+            Snackbar.Add("Please ensure the event time is valid and available.", Severity.Warning);
             return;
         }
 
         try
         {
+            LoadingService.Show("Booking an Event...");
             var result = await EventService.CreateEventAsync(eventDto); // sends CreateEventDto
             if (result != null)
             {
-                successMessage = "Event created successfully!";
+                Snackbar.Add("Event created successfully!", Severity.Success);
                 Nav.NavigateTo("/my-events");
             }
             else
             {
-                errorMessage = "Failed to create event.";
+                Snackbar.Add("There is no available schedule for the selected location.", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            errorMessage = $"Unexpected error: {ex.Message}";
+            // Show the exception message in snackbar
+            Snackbar.Add($"Unexpected error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            LoadingService.Hide();
         }
     }
+
+
+    private async Task OnLocationChanged(Guid locationId)
+    {
+        if (locationId == Guid.Empty)
+        {
+            seatLayouts.Clear();
+            eventDto.SeatLayoutId = Guid.Empty;
+            return;
+        }
+
+        seatLayouts = await LocationService.GetSeatLayoutsByLocationAsync(locationId);
+
+        eventDto.SeatLayoutId = seatLayouts.Any() ? seatLayouts.First().Id : Guid.Empty;
+        await OnDateOrTimeChanged(true, eventDto.StartDateTime);
+        await OnDateOrTimeChanged(false, eventDto.EndDateTime);
+    }
+
 
     private async Task OnDateOrTimeChanged(bool isStart, DateTime? newValue)
     {
@@ -233,6 +338,20 @@
         availabilityMessage = null;
         canSubmit = false;
 
+        if (eventDto.LocationId == Guid.Empty)
+        {
+            availabilityMessage = "Please select a location first.";
+            availabilitySeverity = Severity.Warning;
+            return;
+        }
+
+        if (eventDto.StartDateTime < DateTime.UtcNow)
+        {
+            availabilityMessage = "Start time cannot be in the past.";
+            availabilitySeverity = Severity.Error;
+            return;
+        }
+
         if (eventDto.EndDateTime <= eventDto.StartDateTime)
         {
             availabilityMessage = "End must be after start.";
@@ -240,7 +359,18 @@
             return;
         }
 
-        var res = await EventService.CheckAsync(eventDto.StartDateTime, eventDto.EndDateTime);
+        if (!eventDto.LocationId.HasValue)
+        {
+            availabilityMessage = "Please select a location first.";
+            availabilitySeverity = Severity.Warning;
+            return;
+        }
+
+        var res = await EventService.CheckAsync(
+            eventDto.StartDateTime,
+            eventDto.EndDateTime,
+            eventDto.LocationId.Value
+        );
 
         if (res is null)
         {
@@ -251,14 +381,15 @@
 
         if (res.Available)
         {
-            availabilityMessage = "Time slot is available.";
-            availabilitySeverity = Severity.Warning;
+            availabilityMessage = "✅ Time slot is available.";
+            availabilitySeverity = Severity.Success;
             canSubmit = true;
         }
         else
         {
-            availabilityMessage = "This time slot is already booked.";
+            availabilityMessage = "❌ This time slot is already booked for this location.";
             availabilitySeverity = Severity.Error;
         }
     }
-}
+
+} *@

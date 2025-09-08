@@ -1,5 +1,5 @@
-﻿using EventApp.Shared.DTOs.Seat;
-using EventApp.Shared.Models;
+﻿using EventApp.Shared.DTOs.Common;
+using EventApp.Shared.DTOs.Seat;
 
 namespace EventApp.Services.SeatLayoutService
 {
@@ -9,6 +9,7 @@ namespace EventApp.Services.SeatLayoutService
         Task<SeatLayoutDto?> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(CreateSeatLayoutDto dto);
         Task<bool> DeleteAsync(Guid id);
+        Task<PagedResult<SeatDto>> GetSeatsPagedAsync(Guid layoutId, PaginationParams pagination);
 
     }
 }

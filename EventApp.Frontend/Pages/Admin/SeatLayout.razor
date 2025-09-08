@@ -1,0 +1,189 @@
+﻿@page "/seat-layout"
+@inject ILayoutClientServ SeatLayoutService
+@inject NavigationManager Navigation
+
+<h3 style="color:white;">Seat Layouts</h3>
+
+<MudPaper Class="p-4 mb-4" Style="background-color:#0B192C;">
+    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="ShowCreateForm">
+        Add New Seat Layout
+    </MudButton>
+</MudPaper>
+
+@if (loading)
+{
+    <p style="color:white;">Loading layouts...</p>
+}
+else
+{
+    <MudPaper Class="p-2" Style="background-color:#0B192C;">
+        <MudTable Items="layouts" Hover="true" Dense="true">
+            <HeaderContent>
+                <MudTh Style="background-color:#000000; color:white;">Name</MudTh>
+                <MudTh Style="background-color:#000000; color:white;">Price</MudTh>
+                <MudTh Style="background-color:#000000; color:white;">Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="background-color:#0B192C; color:white;">@context.Name</MudTd>
+                <MudTd Style="background-color:#0B192C; color:white;">@context.Price</MudTd>
+                <MudTd Style="background-color:#0B192C; color:white;">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                               OnClick="@(() => ViewSections(context))">
+                        View Sections
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudTr>
+                    <MudTd ColSpan="3" Style="background-color:#0B192C; color:white; text-align:center;">
+                        No seat layouts found.
+                    </MudTd>
+                </MudTr>
+            </NoRecordsContent>
+        </MudTable>
+    </MudPaper>
+}
+
+@if (showCreateForm)
+{
+    <MudPaper Class="p-4 mt-4" Style="background-color:#0B192C; color:white;">
+        <h4>Create Seat Layout</h4>
+
+        <MudTextField @bind-Value="newLayout.Name" Label="Layout Name" Required="true" Style="color:white;" />
+        <MudTextField @bind-Value="newLayout.Price" Label="Price" Type="number" Required="true" Style="color:white;" />
+
+        <h5 class="mt-3">Sections</h5>
+        @foreach (var section in newLayout.Sections)
+        {
+            <MudPaper Class="p-2 mb-2" Style="background-color:#1B2C3C; color:white;">
+                <MudTextField @bind-Value="section.Name" Label="Section Name" Required="true" Style="color:white;" />
+                <MudTextField @bind-Value="section.Rows" Label="Rows" Type="number" Style="color:white;" />
+                <MudTextField @bind-Value="section.Columns" Label="Columns" Type="number" Style="color:white;" />
+                <MudTextField @bind-Value="section.PositionX" Label="Position X" Type="number" Style="color:white;" />
+
+                <MudButton Color="Color.Error" Variant="Variant.Text" OnClick="@(() => RemoveSection(section))">
+                    Remove
+                </MudButton>
+            </MudPaper>
+        }
+
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="AddSection">
+            Add Section
+        </MudButton>
+
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreateLayout" Class="mt-3">
+            Save Layout
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="CancelCreate" Class="mt-3">
+            Cancel
+        </MudButton>
+    </MudPaper>
+}
+
+@code {
+    private List<SeatLayoutDto> layouts = new();
+    private bool loading = true;
+    private bool showCreateForm = false;
+
+    private CreateSeatLayoutSectionDto newLayout = new()
+    {
+        Sections = new List<CreateSectionNoGDto>()
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLayouts();
+    }
+
+    private async Task LoadLayouts()
+    {
+        loading = true;
+
+        var seatLayoutsFromBackend = await SeatLayoutService.GetAllLayoutSection();
+
+        layouts = seatLayoutsFromBackend
+            .Select(sl => new SeatLayoutDto
+            {
+                Id = sl.Id,
+                Name = sl.Name,
+                Price = sl.Price,
+                IsActive = sl.IsActive,
+                Sections = sl.Sections
+                    .Select(s => new LayoutSectionDto
+                    {
+                        Id = s.Id,
+                        SeatLayoutId = s.SeatLayoutId,
+                        Name = s.Name,
+                        Rows = s.Rows,
+                        Columns = s.Columns,
+                        PositionX = s.PositionX,
+                        TotalSeats = s.TotalSeats
+                    }).ToList()
+            }).ToList();
+
+        loading = false;
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+        newLayout = new CreateSeatLayoutSectionDto
+        {
+            Sections = new List<CreateSectionNoGDto>()
+        };
+    }
+
+    private void CancelCreate()
+    {
+        showCreateForm = false;
+    }
+
+    private void AddSection()
+    {
+        newLayout.Sections.Add(new CreateSectionNoGDto());
+    }
+
+    private void RemoveSection(CreateSectionNoGDto section)
+    {
+        newLayout.Sections.Remove(section);
+    }
+
+    private async Task CreateLayout()
+    {
+        try
+        {
+            var created = await SeatLayoutService.CreateSeatLayoutWithSectionsAsync(newLayout);
+
+            if (created != null)
+            {
+                created.Sections = created.Sections
+                    .Select(s => new LayoutSectionDto
+                    {
+                        Id = s.Id,
+                        SeatLayoutId = s.SeatLayoutId,
+                        Name = s.Name,
+                        Rows = s.Rows,
+                        Columns = s.Columns,
+                        TotalSeats = s.TotalSeats,
+                        PositionX = s.PositionX
+                    }).ToList();
+
+                layouts.Add(created);
+                showCreateForm = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating layout: {ex.Message}");
+        }
+    }
+
+    private void ViewSections(SeatLayoutDto layout)
+    {
+        if (layout.Id != Guid.Empty)
+        {
+            // Navigate to seat layout details (adjust route if needed)
+            Navigation.NavigateTo($"/layout-section/{layout.Id}");
+        }
+    }
+}

@@ -48,16 +48,14 @@ namespace EventApp.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequestDto dto)
         {
-            try
-            {
-                var token = await _authService.LoginAsync(dto);
-                return Ok(token);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Unauthorized(ex.Message);
-            }
+            var result = await _authService.LoginAsync(dto);
+
+            if (!result.Success)
+                return Unauthorized(result.ErrorMessage);
+
+            return Ok(result);
         }
+
 
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)

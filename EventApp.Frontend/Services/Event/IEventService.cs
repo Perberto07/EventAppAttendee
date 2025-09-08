@@ -11,7 +11,7 @@ namespace EventApp.Frontend.Services.Event
         Task<bool> RejectEventAsync(Guid eventId);
 
         Task<bool> UpdateEventStatusAsync(Guid eventId, EventStatus newStatus);
-        Task<AvailabilityDto?> CheckAsync(DateTime start, DateTime end);
+        Task<AvailabilityDto?> CheckAsync(DateTime start, DateTime end, Guid locationId, Guid? excludeEventId = null);
         Task<List<EventDto>> GetUpcomingEventsAsync();
         Task<bool> UpdateEventAsync(Guid eventId, UpdateEventDto dto);
         Task<bool> DeleteEventAsync(Guid eventId);

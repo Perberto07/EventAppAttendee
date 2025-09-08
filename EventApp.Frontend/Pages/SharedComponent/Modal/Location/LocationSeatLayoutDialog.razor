@@ -1,0 +1,111 @@
+﻿@inject ILayoutClientServ LayoutService
+@inject IDialogService DialogService
+
+<MudDialog>
+
+    <DialogContent>
+        @if (Location == null)
+        {
+            <MudText Color="Color.Error">Location not found.</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.subtitle1" Class="mb-2">Address: @Location.Address</MudText>
+            <MudText Typo="Typo.subtitle2" Class="mb-2">
+                Status: 
+                <MudChip T="string" Color="@(Location.IsActive ? Color.Success : Color.Default)" Variant="Variant.Filled">
+                    @(Location.IsActive ? "Active" : "Inactive")
+                </MudChip>
+            </MudText>
+
+            <MudDivider Class="my-2" />
+
+            <MudText Typo="Typo.h6" Class="mb-2">Seat Layouts</MudText>
+
+            @if (Location.SeatLayouts == null || !Location.SeatLayouts.Any())
+            {
+                <MudText>No seat layouts bound to this location.</MudText>
+            }
+            else
+            {
+                @foreach (var layout in Location.SeatLayouts)
+                {
+                    var layoutWithSections = layoutCache.ContainsKey(layout.Id) 
+                        ? layoutCache[layout.Id] 
+                        : null;
+                    var lyt = layout;
+                    <MudPaper Class="p-3 mb-3" Style="background-color:#0B192C; color:white;">
+                        <MudText Typo="Typo.subtitle1">@lyt.Name</MudText>
+
+                        @if (layoutWithSections == null)
+                        {
+                            <MudText>Loading sections...</MudText>
+                        }
+                        else if (!layoutWithSections.Sections.Any())
+                        {
+                            <MudText>No sections found for this layout.</MudText>
+                        }
+                        else
+                        {
+                            <MudTable Items="layoutWithSections.Sections" Dense="true" Hover="true">
+                                <HeaderContent>
+                                    <MudTh>Section Name</MudTh>
+                                    <MudTh>Rows</MudTh>
+                                    <MudTh>Columns</MudTh>
+                                    <MudTh>Total Seats</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd>@context.Name</MudTd>
+                                    <MudTd>@context.Rows</MudTd>
+                                    <MudTd>@context.Columns</MudTd>
+                                    <MudTd>@context.TotalSeats</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudPaper>
+                }
+            }
+        }
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Secondary" Variant="Variant.Text" OnClick="Cancel">
+            Close
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public LocationDto Location { get; set; } = default!;
+
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private Dictionary<Guid, SeatLayoutDto> layoutCache = new();
+
+    // Use OnParametersSetAsync instead of OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        if (Location?.SeatLayouts != null)
+        {
+            foreach (var layout in Location.SeatLayouts)
+            {
+                // Only fetch if not already cached
+                if (!layoutCache.ContainsKey(layout.Id))
+                {
+                    var layoutWithSections = await LayoutService.GetSeatLayoutWithSectionsAsync(layout.Id);
+                    if (layoutWithSections != null)
+                    {
+                        layoutCache[layout.Id] = layoutWithSections;
+                    }
+                }
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

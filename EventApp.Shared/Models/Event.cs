@@ -11,16 +11,20 @@ namespace EventApp.Shared.Models
         public string Description { get; set; } = string.Empty;
         public DateTime StartDateTime { get; set; }
         public DateTime EndDateTime { get; set; }
-        public string Location { get; set; } = "Jocfer Building";
         public Guid OrganizerId { get; set; }
         public EventStatus Status { get; set; } = EventStatus.Pending;
 
         public Decimal Price { get; set; }
 
-        public Guid SeatLayoutId { get; set; }
-        public SeatLayout? SeatLayout { get; set; }
+        public Guid? LocationId { get; set; }
+        public Location? Location { get; set; }
 
         public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
-        public ICollection<EventSeat> EventSeats { get; set; } = new List<EventSeat>();
+        public int EventLayoutId { get; set; }
+        public EventLayout? EventLayout { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        //public ICollection<EventSeat> EventSeats { get; set; } = new List<EventSeat>();
+        //public Guid SeatLayoutId { get; set; }
+        //public SeatLayout? SeatLayout { get; set; }
     }
 }

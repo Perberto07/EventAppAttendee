@@ -1,7 +1,7 @@
 ﻿using EventApp.Shared.DTOs.Seat;
 using Microsoft.AspNetCore.SignalR.Client;
 
-namespace BookEvent.Attendee.Frontend.Services
+namespace EventApp.Frontend.Services.SeatService
 {
     public class SeatSignalRService
     {

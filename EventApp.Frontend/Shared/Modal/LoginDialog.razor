@@ -8,11 +8,22 @@
     <DialogContent>
         <EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
             <MudTextField @bind-Value="loginDto.Username" Label="Username" Required="true" />
-            <MudTextField @bind-Value="loginDto.Password" Label="Password" InputType="InputType.Password" Required="true" />
+            <MudTextField @bind-Value="loginDto.Password"
+                          Label="Password"
+                          InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                          Required="true"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                          OnAdornmentClick="@TogglePasswordVisibility"
+                          T="string" />
 
             @if (!string.IsNullOrWhiteSpace(Error))
             {
-                <MudText Color="Color.Error">@Error</MudText>
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Dense=true Class="m-2">
+                    <MudText Color="Color.Error">@Error
+                             </MudText>
+                </MudAlert>
+                
             }
         </EditForm>
         <MudText Class="mt-3" Typo="Typo.body2" Align="Align.Center">
@@ -47,6 +58,7 @@
     private NavigationManager Nav { get; set; } = default!;
 
     private LoginRequestDto loginDto = new();
+    private bool _showPassword = false;
     private string Error = string.Empty;
     private bool isSubmitting = false;
 
@@ -55,20 +67,30 @@
         isSubmitting = true;
         Error = string.Empty;
 
-        var token = await AuthService.LoginAsync(loginDto);
-        if (token != null)
+        if (string.IsNullOrWhiteSpace(loginDto.Username) || string.IsNullOrWhiteSpace(loginDto.Password))
+        {
+            Error = "Username and Password are required.";
+            return;
+        }
+
+        var result = await AuthService.LoginAsync(loginDto);
+        if (result != null && result.Success)
         {
             MudDialog.Close(DialogResult.Ok(true));
             Nav.NavigateTo("/", forceLoad: true);
         }
         else
         {
-            Error = "Invalid credentials.";
+            Error = result?.ErrorMessage ?? "Invalid credentials.";
         }
 
         isSubmitting = false;
     }
 
+    private void TogglePasswordVisibility()
+    {
+        _showPassword = !_showPassword;
+    }
 
     private async Task OpenRegisterDialog()
     {

@@ -1,9 +1,12 @@
-﻿@page "/seat-layouts"
-@using EventApp.Shared.DTOs.Seat
+﻿@* @page "/seat-layouts"
 @inject ISeatLayoutClient SeatLayoutService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject LoadingService LoadingService
+@inject NavigationManager Nav
 @attribute [Authorize(Roles = "Admin")]
+
+<LoadingComponent />
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
     <MudText Typo="Typo.h4" Class="mb-4">Seat Layouts</MudText>
@@ -13,36 +16,42 @@
         <MudButton Variant="Variant.Outlined"
                    Color="Color.Success"
                    OnClick="@AddLayout">
-            <MudIcon Icon="@Icons.Material.Filled.Add" 
+            <MudIcon Icon="@Icons.Material.Filled.Add"
                      Size="Size.Small"
-                     Style="margin: 2px"/>
+                     Style="margin: 2px" />
             Seat Layout
         </MudButton>
     </MudPaper>
 
     <MudTable Items="@layouts"
               Hover="true"
-              Dense="true"
-              >
+              Dense="true">
         <HeaderContent>
-            <MudTh>Name</MudTh>
-            <MudTh>Rows</MudTh>
-            <MudTh>Columns</MudTh>
-            <MudTh>Seats</MudTh>
-            <MudTh>Actions</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Name</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Rows</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Columns</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Seats</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Price</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Rows">@context.Rows</MudTd>
-            <MudTd DataLabel="Columns">@context.Columns</MudTd>
-            <MudTd DataLabel="Seats">@context.SeatCount</MudTd>
-            <MudTd>
-                
+            <MudTd DataLabel="Name" Style="background-color: #0B192C; color:white;">@context.Name</MudTd>
+            <MudTd DataLabel="Rows" Style="background-color: #0B192C; color:white;">@context.Rows</MudTd>
+            <MudTd DataLabel="Columns" Style="background-color: #0B192C; color:white;">@context.Columns</MudTd>
+            <MudTd DataLabel="Seats" Style="background-color: #0B192C; color:white;">@context.SeatCount</MudTd>
+            <MudTd DataLabel="Price" Style="background-color: #0B192C; color:white;">₱ @context.Price</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                               Color="Color.Primary"
+                               OnClick="@(() => ViewSeats(context))"
+                               Size="Size.Medium"
+                               Style="border: solid; border-width:thin; border-color: blue; padding: 3px" />
+
                 <MudIconButton Icon="@Icons.Material.Outlined.Delete"
                                Color="Color.Error"
                                OnClick="@(() => DeleteLayout(context))"
                                Size="Size.Medium"
-                               style="border: solid; border-width:thin; border-color: red; padding: 3px" />
+                               Style="border: solid; border-width:thin; border-color: red; padding: 3px" />
             </MudTd>
         </RowTemplate>
     </MudTable>
@@ -69,15 +78,25 @@
 
         if (!result.Canceled && result.Data is CreateSeatLayoutDto dto)
         {
-            var id = await SeatLayoutService.CreateAsync(dto);
-            if (id != null)
+            try
             {
-                Snackbar.Add("Seat Layout added successfully.", Severity.Success);
-                await LoadLayouts();
+                LoadingService.Show("Creating seat layout..."); // Show spinner
+
+                var id = await SeatLayoutService.CreateAsync(dto);
+
+                if (id != null)
+                {
+                    Snackbar.Add("Seat Layout added successfully.", Severity.Success);
+                    await LoadLayouts();
+                }
+                else
+                {
+                    Snackbar.Add("Failed to add seat layout.", Severity.Error);
+                }
             }
-            else
+            finally
             {
-                Snackbar.Add("Failed to add seat layout.", Severity.Error);
+                LoadingService.Hide(); // Hide spinner
             }
         }
     }
@@ -91,16 +110,32 @@
 
         if (confirmed == true)
         {
-            var success = await SeatLayoutService.DeleteAsync(layout.Id);
-            if (success)
+            try
             {
-                Snackbar.Add("Seat Layout deleted.", Severity.Info);
-                await LoadLayouts();
+                LoadingService.Show("Deleting seat layout..."); // Show spinner
+
+                var success = await SeatLayoutService.DeleteAsync(layout.Id);
+
+                if (success)
+                {
+                    Snackbar.Add("Seat Layout deleted.", Severity.Info);
+                    await LoadLayouts();
+                }
+                else
+                {
+                    Snackbar.Add("This Seat Layout is used in existing event and cannot be deleted.", Severity.Error);
+                }
             }
-            else
+            finally
             {
-                Snackbar.Add("This Seat Layout Is Used In Existing Event and Cannot be Deleted.", Severity.Error);
+                LoadingService.Hide(); // Hide spinner
             }
         }
     }
+
+    private void ViewSeats(SeatLayoutDto layout)
+    {
+        Nav.NavigateTo($"/seat-layouts/{layout.Id}/seats");
+    }
 }
+ *@

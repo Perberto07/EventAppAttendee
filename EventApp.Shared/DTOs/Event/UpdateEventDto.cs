@@ -10,5 +10,8 @@ namespace EventApp.Shared.DTOs.Event
         public DateTime EndDateTime { get; set; }
         public decimal Price { get; set; }
         public EventStatus Status { get; set; }
+        public Guid LocationId { get; set; }
+        
+        public Guid SeatLayoutId { get; set; }
     }
 }

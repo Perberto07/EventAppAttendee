@@ -1,0 +1,131 @@
+﻿@* @page "/locations"
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IClientLocationServ LocationService
+@inject ISeatLayoutClient SeatLayoutService 
+@attribute [Authorize(Roles = "Admin")]
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Manage Locations</MudText>
+    <MudDivider Class="mb-4" />
+
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="OpenCreateDialog">
+        Create Location
+    </MudButton>
+
+    <MudTable Items="_locations" Hover="true" Dense="true" Class="mt-4">
+        <HeaderContent>
+            <MudTh Style="background-color: #000000; color:white;">Name</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Address</MudTh>
+            <MudTh Style="background-color: #000000; color:white;">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Style="background-color: #0B192C; color:white;">@context.Name</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">@context.Address</MudTd>
+            <MudTd Style="background-color: #0B192C; color:white;">
+                <MudButton Color="Color.Secondary" Variant="Variant.Outlined" Size="Size.Small" OnClick="() => OpenBindDialog(context)">
+                    Bind
+                </MudButton>
+                <MudButton Color="Color.Warning" Variant="Variant.Outlined" Size="Size.Small" OnClick="() => OpenUnbindDialog(context)">
+                    Unbind
+                </MudButton>
+                <MudButton Color="Color.Info" Variant="Variant.Outlined" Size="Size.Small" OnClick="() => ViewLocation(context)">
+                    View
+                </MudButton>
+                <MudButton Color="Color.Error" Variant="Variant.Outlined" Size="Size.Small" OnClick="() => DeleteLocation(context.Id)">
+                    Delete
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private List<LocationDto> _locations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLocations();
+    }
+
+    private async Task LoadLocations()
+    {
+        _locations = await LocationService.GetAllAsync();
+    }
+
+    private async Task DeleteLocation(Guid id)
+    {
+        if (await LocationService.DeleteAsync(id))
+        {
+            Snackbar.Add("Location deleted", Severity.Success);
+            await LoadLocations();
+        }
+        else
+        {
+            Snackbar.Add("Failed to delete location", Severity.Error);
+        }
+    }
+    private async Task ViewLocation(LocationDto location)
+    {
+        var details = await LocationService.GetByIdAsync(location.Id);
+
+        if (details is null)
+        {
+            Snackbar.Add("Failed to load location details", Severity.Error);
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            ["Location"] = details
+        };
+
+        DialogService.Show<LocationDetailDialog>("Location Details", parameters);
+    }
+
+    private async Task OpenCreateDialog()
+    {
+
+        var dialog = DialogService.Show<CreateLocationDialog>("Create Location");
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+            await LoadLocations();
+    }
+
+    private async Task OpenBindDialog(LocationDto location)
+    {
+        var layouts = await SeatLayoutService.GetAllAsync();
+
+        var parameters = new DialogParameters
+        {
+            ["Location"] = location,
+            ["AvailableLayouts"] = layouts
+        };
+
+        var dialog = DialogService.Show<BindSeatLayoutDialog>(null, parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+            await LoadLocations();
+    }
+
+    private async Task OpenUnbindDialog(LocationDto location)
+    {
+        var boundLayouts = await LocationService.GetSeatLayoutsByLocationAsync(location.Id);
+
+        location.SeatLayouts = boundLayouts; 
+
+        var parameters = new DialogParameters
+        {
+            ["Location"] = location
+        };
+
+        var dialog = DialogService.Show<UnbindSeatLayoutDialog>(null, parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+            await LoadLocations();
+    }
+}
+ *@

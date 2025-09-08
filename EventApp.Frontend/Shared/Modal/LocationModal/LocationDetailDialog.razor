@@ -1,0 +1,48 @@
+﻿@* 
+
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Location Details</MudText>
+        <MudDivider Class="mb-3" />
+
+        <MudText><b>Name:</b> @Location.Name</MudText>
+        <MudText><b>Address:</b> @Location.Address</MudText>
+
+        <MudText Typo="Typo.subtitle1" Class="mt-3">Seat Layouts</MudText>
+        @if (Location.SeatLayouts != null && Location.SeatLayouts.Any())
+        {
+            <MudTable Items="Location.SeatLayouts" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Rows</MudTh>
+                    <MudTh>Columns</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Name</MudTd>
+                    <MudTd>@context.Rows</MudTd>
+                    <MudTd>@context.Columns</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <MudText>No seat layouts bound to this location.</MudText>
+        }
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Closing" Color="Color.Primary">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public LocationDto Location { get; set; } = new();
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    public void Closing()
+    {
+        MudDialog.Close();
+    }
+}
+ *@

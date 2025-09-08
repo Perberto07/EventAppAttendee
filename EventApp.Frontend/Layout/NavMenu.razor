@@ -34,6 +34,28 @@
     </MudButton>
 
     <MudButton Variant="Variant.Text"
+               StartIcon="@Icons.Material.Filled.Theaters"
+               FullWidth="true"
+               Color="Color.Inherit"
+               OnClick="@(() => Navigation.NavigateTo("/seat-layouts-view"))"
+               Class="justify-start text-left"
+               Style="color: #FFCDD2; padding: 12px 16px; margin-bottom: 4px; border-radius: 8px; text-transform: none;"
+               @onmouseover="@((e) => SetButtonStyle(e, true))"
+               @onmouseout="@((e) => SetButtonStyle(e, false))">
+        <MudText Typo="Typo.body1" Style="font-weight: 500;">Seat Layout</MudText>
+    </MudButton>
+
+    <MudButton Variant="Variant.Text"
+               StartIcon="@Icons.Material.Filled.AccountCircle"
+               FullWidth="true"
+               Color="Color.Inherit"
+               OnClick="@(() => Navigation.NavigateTo("/client-locations"))"
+               Class="justify-start text-left"
+               Style="color: #FFCDD2; padding: 12px 16px; margin-bottom: 4px; border-radius: 8px; text-transform: none;">
+        <MudText Typo="Typo.body1" Style="font-weight: 500;">Location</MudText>
+    </MudButton>
+
+    <MudButton Variant="Variant.Text"
                StartIcon="@Icons.Material.Filled.AccountCircle"
                FullWidth="true"
                Color="Color.Inherit"
@@ -54,6 +76,15 @@
                    Style="color: #FFCDD2; padding: 12px 16px; margin-bottom: 4px; border-radius: 8px; text-transform: none;">
             <MudText Typo="Typo.body1" Style="font-weight: 500;">Book Event</MudText>
         </MudButton>
+        <MudButton Variant="Variant.Text"
+                   OnClick="@(() => Navigation.NavigateTo("/transactions"))"
+                   StartIcon="@Icons.Material.Filled.ReceiptLong"
+                   FullWidth="true"
+                   Color="Color.Inherit"
+                   Class="justify-start text-left"
+                   Style="color: #FFCDD2; padding: 12px 16px; margin-bottom: 4px; border-radius: 8px; text-transform: none;">
+            <MudText Typo="Typo.body1" Style="font-weight: 500;">Transaction</MudText>
+        </MudButton>
     }
 
     @if (isAdmin)
@@ -63,6 +94,15 @@
         </MudText>
         
         <MudButton Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Sharp.Map"
+                   FullWidth="true"
+                   Color="Color.Inherit"
+                   Class="justify-start text-left"
+                   Style="color: #FFCDD2; padding: 12px 16px; margin-bottom: 4px; border-radius: 8px; text-transform: none;"
+                   OnClick="@(() => Navigation.NavigateTo("/locations"))">
+            <MudText Typo="Typo.body1" Style="font-weight: 500;">Locations</MudText>
+        </MudButton>
+        <MudButton Variant="Variant.Text"
                    StartIcon="@Icons.Material.Filled.Edit"
                    FullWidth="true"
                    Color="Color.Inherit"
@@ -70,6 +110,15 @@
                    Style="color: #FFCDD2; padding: 12px 16px; margin-bottom: 4px; border-radius: 8px; text-transform: none;"
                    OnClick="@(() => Navigation.NavigateTo("admin/manage-events"))">
             <MudText Typo="Typo.body1" Style="font-weight: 500;">Pending Events</MudText>
+        </MudButton>
+        <MudButton Variant="Variant.Text"
+                   OnClick="@(() => Navigation.NavigateTo("admin/transactions"))"
+                   StartIcon="@Icons.Material.Filled.ReceiptLong"
+                   FullWidth="true"
+                   Color="Color.Inherit"
+                   Class="justify-start text-left"
+                   Style="color: #FFCDD2; padding: 12px 16px; margin-bottom: 4px; border-radius: 8px; text-transform: none;">
+            <MudText Typo="Typo.body1" Style="font-weight: 500;">Transaction</MudText>
         </MudButton>
 
         <MudButton Variant="Variant.Text"

@@ -34,7 +34,6 @@ namespace EventApp.Frontend.Services.Event
             }
 
             return null;
-
         }
 
         public async Task<List<EventDto>> GetAllEventsAsync()
@@ -99,15 +98,18 @@ namespace EventApp.Frontend.Services.Event
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<AvailabilityDto?> CheckAsync(DateTime start, DateTime end)
+        public async Task<AvailabilityDto?> CheckAsync(DateTime start, DateTime end, Guid locationId, Guid? excludeEventId = null)
         {
             var token = await _localStorage.GetItemAsStringAsync("authToken");
             if (!string.IsNullOrWhiteSpace(token))
                 _http.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token);
 
-            // Use ISO 8601 to avoid parsing issues server-side
-            var url = $"api/event/check-availability?start={start:o}&end={end:o}";
+            // Include locationId & excludeEventId in query
+            var url = $"api/event/check-availability?start={start:o}&end={end:o}&locationId={locationId}";
+            if (excludeEventId != null)
+                url += $"&excludeEventId={excludeEventId}";
+
             return await _http.GetFromJsonAsync<AvailabilityDto>(url);
         }
 

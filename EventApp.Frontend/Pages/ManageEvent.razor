@@ -1,21 +1,29 @@
-﻿@page "/events/{EventId:guid}/manage"
+﻿
+@page "/events/{EventId:guid}/manage"
 @inject IEventService EventService
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject LoadingService LoadingService
 @attribute [Authorize]
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+<LoadingComponent />
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4 p-3">
+    <MudPaper Style="background-color: #0B192C; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
 
-    
-    <MudPaper Class="" Style="background-color: #37474f; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
-        <MudPaper Class="d-flex justify-content-center align-content-center"
-                  Style="background-color: #B71C1C; padding-bottom: 10px; padding-top: 10px">
-            <MudText Typo="Typo.h4" Class="mb-4" Style="color: #ffffff; font-weight: 500;">
-                <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-2" Style="color: green;" />
-                Manage Event
+        <!-- Event Header -->
+        <div style="background: linear-gradient(135deg, #4C3A51 0%, #B25068 100%); padding: 20px; position: relative;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-1">
+                <MudText Typo="Typo.h4" Style="color: #ffffff; font-weight: 500;">
+                    Manage Event
+                </MudText>
+            </MudStack>
+            <MudText Typo="Typo.body1" Class="mb-1" Style="color: #b0bec5;">
+                Update your event details below
             </MudText>
-        </MudPaper>
+        </div>
+
         <MudDivider Class="mb-4" Style="border-color: #546e7a;" />
 
         @if (eventDto == null)
@@ -27,111 +35,120 @@
         }
         else
         {
-            <MudPaper style="background-color: inherit; padding:10px">
+            <MudPaper Style="background-color: inherit; margin: 5px; padding: 10px;">
                 <EditForm Model="@updateModel" OnValidSubmit="HandleValidSubmit">
                     <DataAnnotationsValidator />
 
                     <MudGrid Spacing="3">
                         <!-- Title Field -->
                         <MudItem xs="12">
-                            <MudTextField Label="Event Title"
-                                          @bind-Value="updateModel.Title"
-                                          Required="true"
-                                          FullWidth="true"
-                                          Variant="Variant.Text"
-                                          Style="background-color: #455a64; color:#ffffff;border-radius: 8px; padding:12px; label"
-                                          Class="mb-3" />
-                        </MudItem>
-
-                        <!-- Date Fields -->
-                        <MudItem xs="12" md="6">
-                            <MudDatePicker DateFormat="MM/dd/yyyy HH:mm"
-                                           PickerVariant="PickerVariant.Dialog"
-                                           Label="Start Date & Time"
-                                           Required="true"
-                                           Editable="true"
-                                           Placeholder="Select start date"
-                                           Date="@updateModel.StartDateTime"
-                                           DateChanged="@(date => OnDateOrTimeChanged(true, date))"
-                                           Variant="Variant.Text"
-                                           Style="background-color: #455a64; color:#ffffff;border-radius: 8px; padding:12px; label"
-                                           Class="mb-3" />
-                        </MudItem>
-
-                        <MudItem xs="12" md="6">
-                            <MudDatePicker Label="End Date & Time"
-                                           Date="@updateModel.EndDateTime"
-                                           DateChanged="@(date => OnDateOrTimeChanged(false, date))"
-                                           DateFormat="MM/dd/yyyy HH:mm"
-                                           PickerVariant="PickerVariant.Dialog"
-                                           Required="true"
-                                           Editable="true"
-                                           Placeholder="Select end date"
-                                           Variant="Variant.Text"
-                                           Style="background-color: #455a64; color: #ffffff;border-radius: 8px; padding:12px; label"
-                                           Class="mb-3" />
-                        </MudItem>
-
-                        <!-- Price Field -->
-                        <MudItem xs="12" md="6">
-                            <MudNumericField T="decimal"
-                                             Label="Price ($)"
-                                             @bind-Value="updateModel.Price"
-                                             Required="true"
-                                             Variant="Variant.Text"
-                                             Style="background-color: #455a64; color:#ffffff;border-radius: 8px; padding:12px; label"
-                                             Class="mb-3" />
-                        </MudItem>
-
-                        <!-- Status Field -->
-                        <MudItem xs="12" md="6">
-                            @if (isAdmin)
-                            {
-                                <MudSelect T="EventStatus"
-                                           Label="Event Status"
-                                           @bind-Value="updateModel.Status"
-                                           Variant="Variant.Text"
-                                           Style="background-color: #455a64; color:#ffffff;border-radius: 8px; padding:12px; label"
-                                           Class="mb-3">
-                                    @foreach (var status in Enum.GetValues<EventStatus>())
-                                    {
-                                        <MudSelectItem Value="@status">@status</MudSelectItem>
-                                    }
-                                </MudSelect>
-                            }
-                            else
-                            {
-                                <MudTextField Label="Event Status"
-                                              Value="@updateModel.Status.ToString()"
-                                              Disabled="true"
+                            <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px;">
+                                <MudText Class="mb-1" Style="color:white; font-weight:500;">Event Title</MudText>
+                                <MudTextField @bind-Value="updateModel.Title"
+                                              Required="true"
+                                              Variant="Variant.Text"
+                                              Placeholder="Enter event title"
                                               FullWidth="true"
-                                              Variant="Variant.Outlined"
-                                              Style="background-color: #37474f; border-radius: 8px; padding:12px; label; opacity: 0.7;"
-                                              InputStyle="color: #90a4ae; padding: 12px;"
-                                              LabelStyle="color: #78909c;"
-                                              Class="mb-3" />
-                            }
+                                              Style="background-color:black; color:#d3d3d3; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                            </MudPaper>
                         </MudItem>
 
-                        <!-- Description Field -->
+                        <!-- Ticket Price -->
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px;">
+                                <MudText Class="mb-1" Style="color:white; font-weight:500;">Ticket Price</MudText>
+                                <MudNumericField T="decimal"
+                                                 @bind-Value="updateModel.Price"
+                                                 Required="true"
+                                                 Min="1"
+                                                 Step="0.01M"
+                                                 Variant="Variant.Text"
+                                                 Placeholder="Enter price"
+                                                 Style="background-color:black; color:#d3d3d3; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                            </MudPaper>
+                        </MudItem>
+
+                        <!-- Start Date -->
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px;">
+                                <MudText Class="mb-1" Style="color:white; font-weight:500;">Start Date & Time</MudText>
+                                <MudDatePicker Date="@updateModel.StartDateTime"
+                                               DateChanged="@(date => OnDateOrTimeChanged(true, date))"
+                                               DateFormat="MM/dd/yyyy HH:mm"
+                                               PickerVariant="PickerVariant.Inline"
+                                               Required="true"
+                                               Editable="true"
+                                               Variant="Variant.Text"
+                                               Style="background-color:black; color:#d3d3d3; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                            </MudPaper>
+                        </MudItem>
+
+                        <!-- End Date -->
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px;">
+                                <MudText Class="mb-1" Style="color:white; font-weight:500;">End Date & Time</MudText>
+                                <MudDatePicker Date="@updateModel.EndDateTime"
+                                               DateChanged="@(date => OnDateOrTimeChanged(false, date))"
+                                               DateFormat="MM/dd/yyyy HH:mm"
+                                               PickerVariant="PickerVariant.Inline"
+                                               Required="true"
+                                               Editable="true"
+                                               Variant="Variant.Text"
+                                               Style="background-color:black; color:#d3d3d3; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudPaper Style="padding:12px; background-color:inherit; border-radius:8px;">
+                                <MudText Class="mb-1" Style="color:white; font-weight:500;">
+                                    Event Status
+                                </MudText>
+
+                                @if (isAdmin)
+                                {
+                                    <MudSelect T="EventStatus"
+                                               @bind-Value="updateModel.Status"
+                                               Variant="Variant.Text"
+                                               Style="background-color: black; color: #ffffff; border-radius: 8px; padding:8px;"
+                                               Class="mb-3">
+                                        @foreach (var status in Enum.GetValues<EventStatus>())
+                                        {
+                                            <MudSelectItem Value="@status">@status</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                }
+                                else
+                                {
+                                    <MudTextField Value="@updateModel.Status.ToString()"
+                                                  Disabled="true"
+                                                  FullWidth="true"
+                                                  Variant="Variant.Text"
+                                                  Style="background-color: black; color: #d3d3d3; border-radius: 8px; padding:8px; opacity:0.7;"
+                                                  Class="mb-3" />
+                                }
+                            </MudPaper>
+                        </MudItem>
+
+                        <!-- Event Description -->
                         <MudItem xs="12">
-                            <MudTextField Label="Event Description"
-                                          @bind-Value="updateModel.Description"
-                                          Required="true"
-                                          FullWidth="true"
-                                          Lines="4"
-                                          Variant="Variant.Text"
-                                          Style="background-color: #455a64; color:#ffffff;border-radius: 8px; padding:12px; label"
-                                          Class="mb-4" />
+                            <MudPaper Class="d-flex flex-column" Style="padding:12px; background-color:inherit; border-radius:8px;">
+                                <MudText Class="mb-1" Style="color:white; font-weight:500;">Event Description</MudText>
+                                <MudTextField @bind-Value="updateModel.Description"
+                                              Required="true"
+                                              FullWidth="true"
+                                              Lines="4"
+                                              Variant="Variant.Text"
+                                              Placeholder="Enter event description"
+                                              Style="background-color:black; color:#d3d3d3; border:1px solid #2196f3; border-radius:6px; padding:8px;" />
+                            </MudPaper>
                         </MudItem>
 
-                        <!-- Alert Messages -->
+                        <!-- Alerts -->
                         <MudItem xs="12">
                             @if (!string.IsNullOrEmpty(availabilityMessage))
                             {
                                 <MudAlert Severity="@availabilitySeverity"
                                           Class="mb-3"
-                                          Style="border-radius: 8px; background-color: rgba(183, 28, 28, 0.1); border-left: 4px solid #B71C1C;">
+                                          Style="border-radius: 8px; background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107;">
                                     @availabilityMessage
                                 </MudAlert>
                             }
@@ -155,11 +172,7 @@
 
                         <!-- Action Buttons -->
                         <MudItem xs="12">
-                            <MudStack Row="true"
-                                      Spacing="2"
-                                      AlignItems="AlignItems.Center"
-                                      Justify="Justify.Center"
-                                      Class="mt-4">
+                            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="mt-4">
                                 <MudButton Color="Color.Success"
                                            Variant="Variant.Filled"
                                            OnClick="HandleValidSubmit"
@@ -168,7 +181,6 @@
                                            Style="background-color: #4caf50; color: white; border-radius: 8px; text-transform: none; font-weight: 500;">
                                     Save
                                 </MudButton>
-
                                 <MudButton Color="Color.Error"
                                            Variant="Variant.Outlined"
                                            OnClick="DeleteEvent"
@@ -177,7 +189,6 @@
                                            Style="border-color: #B71C1C; color: #B71C1C; border-radius: 8px; text-transform: none; font-weight: 500;">
                                     Delete
                                 </MudButton>
-
                                 <MudButton Color="Color.Default"
                                            Variant="Variant.Text"
                                            OnClick="Cancel"
@@ -193,10 +204,10 @@
                     <ValidationSummary style="color: #ff7043; margin-top: 16px; padding: 12px; background-color: rgba(255, 112, 67, 0.1); border-radius: 8px;" />
                 </EditForm>
             </MudPaper>
-            
         }
     </MudPaper>
 </MudContainer>
+
 
 @code {
     [Parameter] public Guid EventId { get; set; }
@@ -250,7 +261,7 @@
         }
         else
         {
-            errorMessage = "Failed to update event.";
+            errorMessage = "Failed to update event. The Schedule Might have conflict to an existing Event";
         }
     }
 
@@ -273,7 +284,7 @@
             return;
         }
 
-        var res = await EventService.CheckAsync(updateModel.StartDateTime, updateModel.EndDateTime);
+        var res = await EventService.CheckAsync(updateModel.StartDateTime, updateModel.EndDateTime, updateModel.LocationId);
 
         if (res == null)
         {
@@ -284,15 +295,16 @@
 
         if (res.Available)
         {
-            availabilityMessage = "Time slot is available.";
+            availabilityMessage = "✅ Time slot is available.";
             availabilitySeverity = Severity.Success;
             canSubmit = true;
         }
         else
         {
-            availabilityMessage = "This time slot is already booked.";
+            availabilityMessage = "❌ This time slot is already booked.";
             availabilitySeverity = Severity.Error;
         }
+
     }
 
     private async Task DeleteEvent()
@@ -307,17 +319,32 @@
 
         if (result == true)
         {
-            var success = await EventService.DeleteEventAsync(EventId);
-            if (success)
+            try
             {
-                Nav.NavigateTo("/my-events", forceLoad: true);
+                LoadingService.Show("Deleting Event...");
+                var success = await EventService.DeleteEventAsync(EventId);
+
+                if (success)
+                {
+                    Snackbar.Add("Event deleted successfully!", Severity.Success);
+                    Nav.NavigateTo("/my-events", forceLoad: true);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete event.", Severity.Error);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                errorMessage = "Failed to delete event.";
+                Snackbar.Add($"Unexpected error: {ex.Message}", Severity.Error);
+            }
+            finally
+            {
+                LoadingService.Hide();
             }
         }
     }
+
 
     private void Cancel()
     {

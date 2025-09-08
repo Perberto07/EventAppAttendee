@@ -22,21 +22,30 @@ namespace EventApp.Frontend.Services.Auth
             _authStateProvider = authStateProvider;
         }
 
-        public async Task<string?> LoginAsync(LoginRequestDto dto)
+        public async Task<LoginResultDto?> LoginAsync(LoginRequestDto dto)
         {
             var response = await _http.PostAsJsonAsync("api/auth/login", dto);
 
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode)
+            {
+                // Optionally, read error response
+                var error = await response.Content.ReadAsStringAsync();
+                return new LoginResultDto { Success = false, ErrorMessage = error };
+            }
 
-            var token = await response.Content.ReadAsStringAsync();
-            await _js.InvokeVoidAsync("localStorage.setItem", TokenKey, token);
-            _http.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var result = await response.Content.ReadFromJsonAsync<LoginResultDto>();
 
-            if (_authStateProvider is JwtAuthenticationStateProvider jwtProvider)
-                jwtProvider.NotifyUserAuthentication(token);
+            if (result != null && result.Success && !string.IsNullOrEmpty(result.Token))
+            {
+                await _js.InvokeVoidAsync("localStorage.setItem", TokenKey, result.Token);
+                _http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Token);
 
-            return token;
+                if (_authStateProvider is JwtAuthenticationStateProvider jwtProvider)
+                    jwtProvider.NotifyUserAuthentication(result.Token);
+            }
+
+            return result;
         }
 
         public async Task<string?> StartRegistrationAsync(string email)

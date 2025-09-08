@@ -1,8 +1,7 @@
-﻿using EventApp.Frontend.Services.SeatService;
-using EventApp.Shared.DTOs.Seat;
+﻿using EventApp.Shared.DTOs.Seat;
 using System.Net.Http.Json;
 
-namespace EventApp.Client.Services.SeatService
+namespace EventApp.Frontend.Services.SeatService
 {
     public class SeatClientService : ISeatClientService
     {

@@ -12,10 +12,5 @@ namespace EventApp.Shared.Models
         public Guid SeatLayoutId { get; set; }
         public SeatLayout SeatLayout { get; set; }
 
-        public Ticket? Ticket { get; set; }
     }
 }
-//[Timestamp]
-//public byte[] RowVersion { get; set; } = null!;
-//public Guid? EventId { get; set; }
-//public Event? Event { get; set; }

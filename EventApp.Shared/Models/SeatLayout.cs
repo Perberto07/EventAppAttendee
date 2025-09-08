@@ -6,8 +6,13 @@ namespace EventApp.Shared.Models
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public int Rows { get; set; }
-        public int Columns { get; set; }
-        public ICollection<Seat> Seats { get; set; } = new List<Seat>();
+        public Decimal Price { get; set; }
+        public ICollection<Location> Locations { get; set; } = new List<Location>();
+        public ICollection<LayoutSection> LayoutSections { get; set; } = new List<LayoutSection>();
+        public bool IsDeleted { get; set; } = false;
+        public bool IsActive { get; set; } = true;
+
+        //public Guid SeatId { get; set; }
+        //public ICollection<Seat> Seats { get; set; } = new List<Seat>();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Blazored.LocalStorage;
+using EventApp.Shared.DTOs.Common;
 using EventApp.Shared.DTOs.Seat;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -33,6 +34,20 @@ namespace EventApp.Frontend.Services.SeatLayoutClient
             return result ?? Enumerable.Empty<SeatLayoutDto>();
         }
 
+        public async Task<PagedResult<SeatDto>> GetSeatsPagedAsync(Guid layoutId, PaginationParams pagination)
+        {
+            var url = $"api/seatlayouts/{layoutId}/seats?pageNumber={pagination.PageNumber}&pageSize={pagination.PageSize}";
+            var result = await _http.GetFromJsonAsync<PagedResult<SeatDto>>(url);
+
+            return result ?? new PagedResult<SeatDto>
+            {
+                Items = new List<SeatDto>(),
+                TotalCount = 0,
+                PageNumber = pagination.PageNumber,
+                PageSize = pagination.PageSize
+            };
+        }
+
         public async Task<SeatLayoutDto?> GetByIdAsync(Guid id)
         {
             await AddAuthHeaderAsync();
@@ -56,5 +71,7 @@ namespace EventApp.Frontend.Services.SeatLayoutClient
             var response = await _http.DeleteAsync($"api/SeatLayouts/{id}");
             return response.IsSuccessStatusCode;
         }
+
+        
     }
 }

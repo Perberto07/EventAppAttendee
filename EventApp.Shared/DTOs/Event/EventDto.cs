@@ -1,9 +1,4 @@
 ﻿using EventApp.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventApp.Shared.DTOs.Event
 {
@@ -18,6 +13,6 @@ namespace EventApp.Shared.DTOs.Event
         public Guid OrganizerId { get; set; }
         public EventStatus Status { get; set; }
         public decimal Price { get; set; } 
-
+        public Guid SeatLayoutId { get; set; }
     }
 }

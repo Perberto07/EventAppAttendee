@@ -1,11 +1,19 @@
 using EventApp.Data;
 using EventApp.Services.Auth;
+using EventApp.Services.ChatMessage;
 using EventApp.Services.EventAvailability;
 using EventApp.Services.EventServices;
+using EventApp.Services.EventTransactionServ;
 using EventApp.Services.HQAuth;
 using EventApp.Services.HQAuth.OTP;
+using EventApp.Services.LayoutService;
+using EventApp.Services.LocationServ;
+using EventApp.Services.NewEventService;
+using EventApp.Services.NewLocationService;
+using EventApp.Services.PhilippineTimeService;
 using EventApp.Services.SeatLayoutService;
 using EventApp.Services.SeatService;
+using EventApp.Services.TicketService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -47,12 +55,20 @@ builder.Services.AddCors(options =>
 
 
 builder.Services.AddScoped<ISeatService, SeatService>();
-builder.Services.AddScoped<IEventService, EventService>();
+//builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IOrganizerAuthService, OrganizerAuthService>();
 builder.Services.AddScoped<IEventAvailabilityService, EventAvailability>();
-builder.Services.AddScoped<ISeatLayoutService, SeatLayoutService>();
+//builder.Services.AddScoped<ISeatLayoutService, SeatLayoutService>();
+//builder.Services.AddScoped<ITicketMonitorService, TicketMonitorService>();
+//builder.Services.AddScoped<ILocationService, LocationServ>();
+builder.Services.AddScoped<ILocationServ, LocationServ>();
+builder.Services.AddScoped<IEventServ, EventServ>();
+builder.Services.AddScoped<ITransactionServ, TransactionServ>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IPhTimeServ, PhTimeServ>();
 builder.Services.AddControllers();
+builder.Services.AddScoped<ILayoutServ, LayoutServ>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -60,6 +76,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddMemoryCache();
+builder.Services.AddSignalR();
 
 
 var app = builder.Build();
@@ -76,5 +93,6 @@ app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();

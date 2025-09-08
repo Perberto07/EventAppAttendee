@@ -9,8 +9,8 @@ namespace EventApp.Services.EventServices
         Task<bool> ApproveEventAsync(Guid eventId);
         Task<bool> RejectEventAsync(Guid eventId);
         Task<bool> UpdateEventStatusAsync(Guid eventId, UpdateEventStatusDto dto);
-        Task<bool> AnyOverlapAsync(DateTime start, DateTime end, Guid? excludeEventId = null);
-        Task<bool> IsAvailableAsync(DateTime start, DateTime end, Guid? excludeEventId = null);
+        Task<bool> AnyOverlapAsync(DateTime start, DateTime end, Guid locationId, Guid? excludeEventId = null);
+        Task<bool> IsAvailableAsync(DateTime start, DateTime end, Guid locationId, Guid? excludeEventId = null);
         Task<List<EventDto>> GetUpcomingEventsAsync();
 
         Task<bool> UpdateEventAsync(Guid eventId, UpdateEventDto dto, Guid userId, string role);

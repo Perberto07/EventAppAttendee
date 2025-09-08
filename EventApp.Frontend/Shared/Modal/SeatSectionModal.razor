@@ -1,0 +1,85 @@
+﻿
+<LoadingComponent/>
+<MudDialog Style="background-color: #0B192C">
+    <TitleContent>
+        <MudPaper Style="background-color:transparent ;display:flex; justify-content:center; align-items:center">
+            <MudText Typo="Typo.h6" Style="color:white; font-weight:bold;">
+                Section @PageNumber
+            </MudText>
+        </MudPaper>
+    </TitleContent>
+    <DialogContent>
+        @if (SeatRows != null && SeatRows.Any())
+        {
+
+            <MudPaper Class="d-block overflow-scroll justify-content-center align-content-center"
+                      Style="background-color: #0F4C75; max-height:70vh;">
+                @foreach (var row in SeatRows.OrderBy(r => r.Key))
+                {
+                    <div class="d-flex mb-2">
+                        @foreach (var seat in row.Value)
+                        {
+                            <MudPaper Class="m-1" Style="background-color:#FFFFFF;">
+                                <MudButton Color="@(seat.IsBooked ? Color.Error : Color.Primary)"
+                                           Disabled="seat.IsBooked"
+                                           Variant="Variant.Text"
+                                           Style="width:30px; height:30px; min-width:30px; background-color: black; border-radius:unset">
+                                    @if (seat.IsBooked)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Outlined.EventSeat" Style="color: #00A8CC" />
+                                    }
+                                </MudButton>
+                            </MudPaper>
+                        }
+                    </div>
+                }
+            </MudPaper>
+        }
+        else
+        {
+            <MudText>No seats found in this section.</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Dictionary<int, List<EventSeatDto>> SeatRows { get; set; } = new();
+    [Parameter] public Guid EventId { get; set; }
+    [Inject] public SeatSignalRService HubClient { get; set; } = default!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public int PageNumber { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Use the reference passed from parent
+        HubClient.OnSeatUpdated += UpdateSeatStatus;
+    }
+
+    private void UpdateSeatStatus(SeatUpdateDto update)
+    {
+        foreach (var row in SeatRows.Values)
+        {
+            var seat = row.FirstOrDefault(s => s.EventSeatId == update.EventSeatId);
+            if (seat != null)
+            {
+                seat.IsBooked = update.IsBooked;
+                InvokeAsync(StateHasChanged);
+                break;
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        HubClient.OnSeatUpdated -= UpdateSeatStatus;
+    }
+
+    private void Close() => MudDialog.Close();
+}

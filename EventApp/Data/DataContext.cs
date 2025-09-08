@@ -13,54 +13,49 @@ namespace EventApp.Data
         public DbSet<AttendeeUser> AttendeeUser { get; set; } = default!;
         public DbSet<Ticket> Tickets { get; set; } = default!;
         public DbSet<Seat> Seats { get; set; } = default!;
-        public DbSet<Event> Events { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<SeatLayout> SeatLayouts { get; set; }
-        public DbSet<EventSeat> EventSeats { get; set; }
+        public DbSet<Event> Events { get; set; } = default!;
+        public DbSet<User> Users { get; set; } = default!;
+        public DbSet<SeatLayout> SeatLayouts { get; set; } = default!;
+        public DbSet<EventSeat> EventSeats { get; set; } = default!;
+        public DbSet<Location> Locations { get; set; } = default!;
+        public DbSet<EventTransaction> Transactions { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<LayoutSection> LayoutSections { get; set; }
+        public DbSet<EventLayout> EventLayouts { get; set; }
+        public DbSet<EventLayoutSection> EventLayoutSections { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // EventSeat → Seat: restrict
+            // EventSeat → Event
+
+            // EventSeat → Seat  (⚠ Restrict here to prevent multiple cascade paths)
             modelBuilder.Entity<EventSeat>()
                 .HasOne(es => es.Seat)
-                .WithMany()
+                .WithMany()   // Seat does not need collection of EventSeats
                 .HasForeignKey(es => es.SeatId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // EventSeat → Event: cascade
-            modelBuilder.Entity<EventSeat>()
-                .HasOne(es => es.Event)
-                .WithMany(e => e.EventSeats)
-                .HasForeignKey(es => es.EventId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Ticket → Seat: restrict (prevent multiple cascade paths)
-            modelBuilder.Entity<Ticket>()
-                .HasOne(t => t.EventSeat)
-                .WithMany(s => s.Tickets)
-                .HasForeignKey(t => t.EventSeatId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Ticket → Event: cascade (deleting Event deletes tickets)
+            // Ticket → Event (Cascade ok)
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.Event)
                 .WithMany(e => e.Tickets)
                 .HasForeignKey(t => t.EventId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Ticket → Attendee: cascade if you want tickets deleted when attendee is deleted
+            // Ticket → Attendee (Cascade ok)
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.Attendee)
                 .WithMany(a => a.Tickets)
                 .HasForeignKey(t => t.AttendeeId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Ticket>()
-                .HasOne(t => t.Event)
-                .WithMany(e => e.Tickets)
-                .HasForeignKey(t => t.EventId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.EventLayout)
+                .WithOne(l => l.Event)
+                .HasForeignKey<EventLayout>(l => l.EventId);
         }
     }
 }

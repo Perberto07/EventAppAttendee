@@ -1,0 +1,45 @@
+﻿@inject IClientLocationService LocationService
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" Class="mb-4" Style="color:black;">Create New Location</MudText>
+
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="location.Name"
+                          Label="Location Name"
+                          Variant="Variant.Outlined"
+                          Required="true" />
+
+            <MudTextField @bind-Value="location.Address"
+                          Label="Address"
+                          Variant="Variant.Outlined"
+                          Required="true" />
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Save"
+                   Color="Color.Primary"
+                   Variant="Variant.Filled">Save</MudButton>
+        <MudButton OnClick="Cancel"
+                   Color="Color.Secondary"
+                   Variant="Variant.Text">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private CreateLocationDto location = new();
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private async Task Save()
+    {
+        var created = await LocationService.CreateAsync(location);
+        if (created != null)
+        {
+            MudDialog.Close(DialogResult.Ok(created));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

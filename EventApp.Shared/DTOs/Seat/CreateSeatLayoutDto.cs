@@ -11,5 +11,6 @@ namespace EventApp.Shared.DTOs.Seat
         public string Name { get; set; } = string.Empty;
         public int Rows { get; set; }
         public int Columns { get; set; }
+        public Decimal Price { get; set; }
     }
 }

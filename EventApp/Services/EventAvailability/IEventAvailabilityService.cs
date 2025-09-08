@@ -2,7 +2,7 @@
 {
     public interface IEventAvailabilityService
     {
-        Task<bool> IsAvailableAsync(DateTime start, DateTime end, Guid? excludeEventId = null);
+        Task<bool> IsAvailableAsync(DateTime start, DateTime end, Guid locationId, Guid? excludeEventId = null);
     }
 }
 

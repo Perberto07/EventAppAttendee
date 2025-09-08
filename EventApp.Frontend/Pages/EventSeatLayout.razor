@@ -1,0 +1,220 @@
+﻿@page "/events/{EventId:guid}/seats"
+@inject IEventSeatService EventSeatService
+@inject IDialogService DialogService
+@inject SeatSignalRService HubClient
+@implements IAsyncDisposable
+@inject LoadingService LoadingService
+@inject ISnackbar Snackbar
+
+<LoadingComponent />
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6"
+              Style="display:block; justify-content:center">
+
+    <MudPaper Class="d-flex justify-content-between align-items-center"
+              Style="background-color: #0C134F; color: white">
+        <MudText Typo="Typo.h5" GutterBottom="true"
+                 Class="mx-2">Event Seats</MudText>
+
+        <MudPaper Class="d-flex flex-row align-items-center m-2 p-2 gap-4" Elevation="0"
+                  Style="background-color: transparent;color:white">
+            <div class="d-flex align-items-center gap-1">
+                <MudText Class="fw-bold" Color="Color.Info" Style="font-size:20px;">₱</MudText>
+                <MudText>@summary.TicketPrice.ToString("N2")</MudText>
+            </div>
+
+            <div class="d-flex align-items-center gap-1">
+                <MudIcon Icon="@Icons.Material.Filled.EventSeat" Color="Color.Success" />
+                <MudText> @summary.AvailableSeats</MudText>
+            </div>
+
+            <div class="d-flex align-items-center gap-1">
+                <MudIcon Icon="@Icons.Material.Filled.EventSeat" Color="Color.Error" />
+                <MudText>@summary.BookedSeats</MudText>
+            </div>
+
+            <div class="d-flex align-items-center gap-1">
+                <MudIcon Icon="@Icons.Material.Filled.MonetizationOn" Color="Color.Warning" />
+                <MudText>₱: @summary.TotalRevenue.ToString("N2")</MudText>
+            </div>
+        </MudPaper>
+    </MudPaper>
+    <MudDivider Class="mb-4" />
+
+
+    <MudPaper Style="width: 60%; height: 80px; display: flex;
+                 justify-content: center; align-items: center;
+                 margin: 0 auto 20px auto; border-radius: 8px;
+                 background-color:gray"
+              Elevation="2">
+        <MudText Typo="Typo.h6" Align="Align.Center">
+            Stage
+        </MudText>
+    </MudPaper>
+
+
+    @if (isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+    }
+    else if (totalPages == 0)
+    {
+        <MudText>No seats found for this event.</MudText>
+    }
+    else
+    {
+        <!-- Section buttons -->
+        <!-- Section buttons -->
+        <div class="d-flex flex-column gap-3 mb-2 bg-transparent m-5">
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                var currentPage = i;
+                <MudPaper style="background-color:transparent;display:flex; margin-inline: 2rem ;flex-direction:column; align-items:center; padding:10px;"
+                          Elevation="0">
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => OpenSectionModal(currentPage)" Class="mb-1">
+                        Section @currentPage
+                    </MudButton>
+
+                    <MudPaper Class="p-2"
+                              Style="display:flex; flex-direction:column; gap:5px; align-items:center; background-color:black; width:auto">
+                        @for (int row = 1; row <= 3; row++)
+                        {
+                            <div style="display:flex; gap:5px;">
+                                @for (int col = 1; col <= 10; col++)
+                                {
+                                    var isAvailable = GetRandomSeatStatus();
+
+                                    <MudIcon Icon="@Icons.Material.Filled.EventSeat"
+                                             Color="@(isAvailable ? Color.Success : Color.Surface)"
+                                             Style="font-size:30px; margin-inline: auto" />
+                                }
+                            </div>
+                        }
+                    </MudPaper>
+                </MudPaper>
+            }
+        </div>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public Guid EventId { get; set; }
+    private Dictionary<int, List<EventSeatDto>> seatRowsForModal = new();
+    private SeatSummaryDto summary = new();
+    private PagedResult<EventSeatDto> seats = new();
+    private Dictionary<int, List<EventSeatDto>> allSections = new();
+    private bool isLoading = true;
+    private int pageSize = 5; // rows per section
+    private int totalPages = 0;
+    private Random rand = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            LoadingService.Show("Loading...");
+            await LoadSeats(1); // load first page
+            // Start SignalR once here
+            await HubClient.StartAsync("https://localhost:7103/", EventId);
+            HubClient.OnSeatUpdated += async (update) =>
+            {
+                foreach (var row in seatRowsForModal.Values)
+                {
+                    var seat = row.FirstOrDefault(s => s.EventSeatId == update.EventSeatId);
+                    if (seat != null)
+                    {
+                        seat.IsBooked = update.IsBooked;
+                        break;
+                    }
+                }
+                try
+                {
+                    var result = await EventSeatService.GetEventSeatsByEventAsync(EventId, new PaginationParams { PageNumber = 1, PageSize = pageSize });
+                    if (result.Summary != null)
+                        summary = result.Summary;
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Failed to refresh summary: {ex.Message}", Severity.Error);
+                }
+
+                await InvokeAsync(StateHasChanged);
+            };
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Unexpected error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            LoadingService.Hide();
+        }
+
+    }
+
+    private async Task LoadSeats(int pageNumber)
+    {
+        try
+        {
+            isLoading = true;
+
+            var pagination = new PaginationParams
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            var result = await EventSeatService.GetEventSeatsByEventAsync(EventId, pagination);
+
+            seats = result;
+            pageSize = result.PageSize;
+            totalPages = result.TotalPages;
+
+            if (result.Summary != null)
+            {
+                summary = result.Summary;
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private bool GetRandomSeatStatus()
+    {
+        return rand.Next(0, 2) == 0; // 50% chance true/false
+    }
+
+    private async Task OpenSectionModal(int pageNumber)
+    {
+        LoadingService.Show("Loading...");
+        var pagination = new PaginationParams { PageNumber = pageNumber, PageSize = pageSize };
+        var result = await EventSeatService.GetEventSeatsByEventAsync(EventId, pagination);
+
+        seatRowsForModal = result.Items?
+            .GroupBy(s => s.RowNumber)
+            .ToDictionary(g => g.Key, g => g.OrderBy(s => s.ColumnNumber).ToList())
+            ?? new Dictionary<int, List<EventSeatDto>>();
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = false, CloseButton = true };
+        var parameters = new DialogParameters
+        {
+            ["SeatRows"] = seatRowsForModal,
+            ["EventId"] = EventId,
+            ["PageNumber"] = pageNumber
+        };
+
+        DialogService.Show<SeatSectionModal>(null, parameters, options);
+        LoadingService.Hide();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (HubClient != null)
+        {
+            await HubClient.StopAsync();
+        }
+    }
+}
